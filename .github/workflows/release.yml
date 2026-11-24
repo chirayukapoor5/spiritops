@@ -65,7 +65,11 @@ jobs:
               "validation": f'{os.environ["GITHUB_SERVER_URL"]}/{os.environ["GITHUB_REPOSITORY"]}/actions/runs/{os.environ["GITHUB_RUN_ID"]}',
           }, indent=2) + "\n")
           Path("release-notes.md").write_text(
-              "From a checkout of this tag on Linux/amd64 (including Docker Desktop with WSL2), run\n\n"
+              "Build and start the release from this tagged checkout on Linux/amd64 "
+              "or Docker Desktop with WSL2.\n\n"
+              "```sh\ndocker compose up --build --wait --wait-timeout 1800 -d\n```\n\n"
+              "Readers with access to the GHCR package can use its digest-pinned image. "
+              "Authenticate with GHCR if the package requires it.\n\n"
               f"```sh\nexport SPIRITOPS_IMAGE={image}\ndocker pull \"$SPIRITOPS_IMAGE\"\n"
               "docker compose up --no-build --wait --wait-timeout 1800 -d\n```\n\n"
               "The image includes a BuildKit SBOM attestation. Model promotion runs locally through the model release gates.\n"
