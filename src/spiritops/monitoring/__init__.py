@@ -49,8 +49,8 @@ def _rows(home: Path, version: str) -> list[dict]:
             dict(r)
             for r in conn.execute(
                 """
-            SELECT p.product,p.week,p.prediction,p.seasonal,p.lag1,p.segment,l.actual
-            FROM predictions p LEFT JOIN labels l USING(product,week)
+            SELECT p.product,p.week,p.prediction,p.seasonal,p.lag1,p.segment,l.actual,i.lower,i.upper
+            FROM predictions p LEFT JOIN intervals i USING(id) LEFT JOIN labels l USING(product,week)
             WHERE p.version=? AND p.week BETWEEN ? AND ? ORDER BY p.week,p.product
             """,
                 (version, shift(end, -7), end),
@@ -64,6 +64,7 @@ def measures(rows: list[dict]) -> dict:
     total = sum(r["actual"] for r in observed)
     residual = [r["prediction"] - r["actual"] for r in observed]
     absolute = sum(abs(x) for x in residual)
+    intervals = [r for r in observed if r.get("lower") is not None and r.get("upper") is not None]
     scale = sum(max(1, r["seasonal"], r["actual"]) for r in observed)
     return dict(
         samples=n,
@@ -71,6 +72,11 @@ def measures(rows: list[dict]) -> dict:
         mae=absolute / n if n else None,
         wape=absolute / total if total else None,
         bias=sum(residual) / total if total else None,
+        interval_samples=len(intervals),
+        interval_coverage=sum(r["lower"] <= r["actual"] <= r["upper"] for r in intervals)
+        / len(intervals)
+        if intervals
+        else None,
         seasonal_scaled_error=absolute / scale if scale else None,
     )
 
@@ -178,7 +184,7 @@ def mature(home: Path, manifest: dict) -> int:
 
 def tick(home: Path) -> dict:
     from spiritops import deployment, worker
-    from spiritops.features import SCHEMA_VERSION
+    from spiritops.features import schema_features
 
     try:
         model = deployment.current(home)
@@ -193,7 +199,9 @@ def tick(home: Path) -> dict:
     last = windows[-1]["week"] if windows else None
     event = f"monitor:{model['version']}:{last}"
     quality = None
-    if model.get("schema_version", SCHEMA_VERSION) != SCHEMA_VERSION:
+    try:
+        schema_features(model["schema_version"])
+    except ValueError:
         quality = "The active feature schema has changed"
     if (as_of(home) - date.fromisoformat(shift(manifest["last_week"]))).days > rules.max_lag_days:
         quality = "The weekly dataset is stale"

@@ -18,7 +18,7 @@ def fixture(home: Path) -> dict:
         raise FileNotFoundError(
             "Run fixture mode from the repository root containing tests/fixtures/iowa.csv.gz"
         )
-    return ingest_files(home, [path], date(2023, 1, 1), date(2023, 12, 31))
+    return ingest_files(home, [path], date(2023, 1, 1), date(2023, 12, 31), {"mode": "fixture"})
 
 
 def train(home: Path, kind: str, start: str | None = None, end: str | None = None) -> dict:
@@ -58,6 +58,9 @@ def main() -> None:
         sub.add_argument("--mode", default="demo", choices=("demo", "full", "fixture"))
         if name != "data":
             sub.add_argument("--report", type=Path)
+            sub.add_argument(
+                "--snapshot-root", type=Path, help="Replay an existing statewide snapshot"
+            )
     commands.add_parser("fixture")
     commands.add_parser("monitor")
     sub = commands.add_parser("train")
@@ -84,7 +87,11 @@ def main() -> None:
     else:
         from spiritops.demonstration import demonstrate
 
-        result = demonstrate(root, args.mode, benchmark=args.command == "benchmark")
+        if args.snapshot_root is not None and args.mode != "full":
+            parser.error("--snapshot-root requires --mode full")
+        result = demonstrate(
+            root, args.mode, benchmark=args.command == "benchmark", source=args.snapshot_root
+        )
         if args.report:
             args.report.parent.mkdir(parents=True, exist_ok=True)
             args.report.write_text(json.dumps(result, indent=2, default=str) + "\n")

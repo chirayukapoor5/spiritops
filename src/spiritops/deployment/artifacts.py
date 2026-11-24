@@ -35,14 +35,13 @@ def checked_directory(home: Path, relative: str) -> Path:
 
 
 def verify(directory: Path, expected: dict[str, str]) -> dict[str, Any]:
-    from spiritops.features import SCHEMA_VERSION
+    from spiritops.features import schema_features
 
     if checksums(directory) != expected:
         raise ValueError("native artifact checksum mismatch")
     meta: dict[str, Any] = json.loads((directory / "model.json").read_text(encoding="utf-8"))
     kind = meta.get("kind")
-    if meta.get("schema_version") != SCHEMA_VERSION:
-        raise ValueError("incompatible feature schema")
+    schema_features(meta["schema_version"])
     if kind not in {"baseline", "lightgbm"} or ("model.txt" in expected) != (kind == "lightgbm"):
         raise ValueError("unsupported or incomplete native model")
     return meta

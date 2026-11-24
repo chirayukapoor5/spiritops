@@ -130,6 +130,7 @@ def monitoring() -> None:
     )
     cols[1].metric("Rolling MAE", number(metrics.get("mae"), 2, " L"))
     cols[2].metric("Forecast bias", percent(metrics.get("bias")))
+    st.metric("Prediction interval coverage", percent(metrics.get("interval_coverage")))
     if metrics.get("wape") is None:
         st.info(
             "Forecast accuracy is available after sufficient actual purchases have been matched to predictions."
@@ -139,6 +140,11 @@ def monitoring() -> None:
     if isinstance(segments, dict):
         segments = [{"segment": segment, **values} for segment, values in segments.items()]
     display_table(segments, "No product segment has measured performance yet.")
+    st.subheader("Prospective shadow forecasts")
+    display_table(
+        request("/v1/monitoring/shadow")["items"],
+        "The worker has yet to issue a paired shadow forecast.",
+    )
     st.subheader("Feature drift")
     if drift.get("alert"):
         st.warning(f"Drift threshold exceeded for {drift['feature']}.")

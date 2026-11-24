@@ -18,6 +18,9 @@ def main() -> None:
                 recover_tracking(home)
                 reconcile(home)
                 tick(home)
+                from spiritops.monitoring.shadow import collect
+
+                collect(home)
             except Exception:
                 logging.exception("monitoring cycle failed")
             next_tick = time.monotonic() + float(os.environ.get("SPIRITOPS_MONITOR_SECONDS", "30"))

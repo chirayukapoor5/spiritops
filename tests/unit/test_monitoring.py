@@ -5,6 +5,7 @@ import pytest
 from spiritops.lifecycle import Policy, decide
 from spiritops.monitoring import measures
 from spiritops.monitoring.observations import db, label, note, recent, traffic
+from spiritops.monitoring.shadow import summary
 
 
 def test_error_metrics_and_unavailable_labels():
@@ -22,6 +23,28 @@ def test_error_metrics_and_unavailable_labels():
     assert result["coverage"] == pytest.approx(2 / 3)
     assert measures([missing])["wape"] is None
     assert measures([rows[-1]])["wape"] is None
+
+
+def test_shadow_summary_uses_only_labels_received_after_scoring(tmp_path):
+    rows = [
+        ("early", "a", "2025-12-15", "2", 8, 10, 10, "group", "data", "snapshot_forecast", 1),
+        ("later", "b", "2025-12-15", "2", 8, 10, 10, "group", "data", "snapshot_forecast", 1),
+    ]
+    with db(tmp_path) as conn:
+        conn.executemany("INSERT INTO predictions VALUES(?,?,?,?,?,?,?,?,?,?,?)", rows)
+        conn.executemany(
+            "INSERT INTO prospective_shadow VALUES(?,?,?,?)",
+            [("early", "3", 9, 4), ("later", "3", 9, 4)],
+        )
+        conn.executemany(
+            "INSERT INTO labels VALUES(?,?,?,?)",
+            [("a", "2025-12-15", 100, 2), ("b", "2025-12-15", 10, 5)],
+        )
+    report = summary(tmp_path)[0]
+    assert report["issued"] == 2
+    assert report["matured"] == 1
+    assert report["champion_wape"] == pytest.approx(0.2)
+    assert report["challenger_wape"] == pytest.approx(0.1)
 
 
 @pytest.mark.parametrize(

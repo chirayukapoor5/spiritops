@@ -29,7 +29,7 @@ Each replay creates an isolated registry, operational databases, worker and HTTP
 
 ## Results and scope
 
-The recorded two-store replay covered 100 selected products. The LightGBM challenger improved holdout WAPE from 147.76% to 97.79%. Its aggregate bias was −88.55%, a substantial underforecast on this sparse panel. Treat it as a demonstration of release engineering. The local API served 91 error-free requests during retraining and activation. The benchmark records the workload, alert sensitivity change, latency under concurrency, fault injection and restored version. [Measurements](reports/benchmark.json)
+On the corrected statewide panel, the Tweedie LightGBM reduced WAPE from 37.86% to 28.22% on the September–October development window and qualified for promotion. On the November–December holdout, seasonal naive achieved 29.89% WAPE and LightGBM achieved 30.99%. The retrained challenger failed the release gates and went into shadow evaluation. The replay also verified continued API serving during activation and automatic rollback after an injected artifact failure. [Forecast validation](docs/forecast-validation.md) · [Lifecycle evidence](reports/statewide-lifecycle.json)
 
 ## Engineering guide
 

@@ -1,0 +1,523 @@
+{
+  "dataset_sha256": "7a850513f2994f20bcf2539be0cd3fc0e040e98dc9106dd672681160730858fd",
+  "windows": [
+    {
+      "split": "development",
+      "start": "2025-05-19",
+      "end": "2025-07-07",
+      "seasonal_naive": {
+        "wape": 0.32320987614402674,
+        "mae": 662.2367750000001,
+        "bias": 0.10311973612418655,
+        "seasonal_scaled_error": 0.26641314370111596
+      },
+      "tweedie_lightgbm": {
+        "wape": 0.28079076148172966,
+        "mae": 575.3226682052036,
+        "bias": 0.01963333925477512,
+        "seasonal_scaled_error": 0.23144821680895383
+      },
+      "prior_lightgbm": {
+        "metrics": {
+          "wape": 0.2668659128879748,
+          "mae": 546.7915263505462,
+          "bias": -0.08586958256070117,
+          "seasonal_scaled_error": 0.21997034139969138
+        },
+        "rows": 800,
+        "training_zero_rate": 0.05543103448275862,
+        "validation_zero_rate": 0.0725,
+        "predicted_litres": 1498396.7366260642,
+        "actual_litres": 1639149.85,
+        "underforecast_litres_on_nonzero_weeks": 289093.16722718644
+      },
+      "intervals": {
+        "samples": 800,
+        "coverage": 0.81,
+        "mean_width_litres": 1981.4730030275161
+      },
+      "gate_results": {
+        "native_integrity": true,
+        "schema_compatible": true,
+        "finite_predictions": true,
+        "independent_window": true,
+        "fresh_release_window": true,
+        "defined_wape": true,
+        "minimum_validation_sample": true,
+        "absolute_wape": true,
+        "absolute_bias": true,
+        "latency": true,
+        "relative_wape_gain": true,
+        "category_1012100_sample": true,
+        "category_1012100_wape": true,
+        "category_1012100_bias": true,
+        "category_1012100_relative": true,
+        "category_1031100_sample": true,
+        "category_1031100_wape": true,
+        "category_1031100_bias": true,
+        "category_1031100_relative": true,
+        "category_1062400_sample": true,
+        "category_1062400_wape": true,
+        "category_1062400_bias": true,
+        "category_1062400_relative": true
+      },
+      "critical_segments": {
+        "1012100": {
+          "candidate": {
+            "wape": 0.2572985982220573,
+            "mae": 501.92654589368397,
+            "bias": 0.07410047465231206,
+            "seasonal_scaled_error": 0.20196827836770714
+          },
+          "incumbent": {
+            "wape": 0.34867829647712956,
+            "mae": 680.1859558823529,
+            "bias": 0.19918746394919706,
+            "seasonal_scaled_error": 0.27369739178638786
+          },
+          "rows": 136,
+          "actual_litres": 265302.69
+        },
+        "1031100": {
+          "candidate": {
+            "wape": 0.2661327950994672,
+            "mae": 709.755861823865,
+            "bias": -0.03480771692134221,
+            "seasonal_scaled_error": 0.22802111644179057
+          },
+          "incumbent": {
+            "wape": 0.2893964936845718,
+            "mae": 771.7983712121212,
+            "bias": 0.044831545072942264,
+            "seasonal_scaled_error": 0.2479533255555086
+          },
+          "rows": 264,
+          "actual_litres": 704067.86
+        },
+        "1062400": {
+          "candidate": {
+            "wape": 0.3110532739337727,
+            "mae": 678.2400479168928,
+            "bias": 0.06435054689353824,
+            "seasonal_scaled_error": 0.25800713587716007
+          },
+          "incumbent": {
+            "wape": 0.2630387859915911,
+            "mae": 573.54625,
+            "bias": 0.14807422249334845,
+            "seasonal_scaled_error": 0.21818090174722038
+          },
+          "rows": 64,
+          "actual_litres": 139549.61
+        }
+      },
+      "policy": {
+        "min_relative_wape_gain": 0.02,
+        "profile": "statewide",
+        "max_wape": 0.4,
+        "max_abs_bias": 0.15,
+        "max_segment_wape": 0.5,
+        "max_segment_abs_bias": 0.25,
+        "group_wape_tolerance": 0.1,
+        "latency_budget_ms": 200.0,
+        "critical_categories": [
+          "1012100",
+          "1031100",
+          "1062400"
+        ]
+      }
+    },
+    {
+      "split": "development",
+      "start": "2025-07-14",
+      "end": "2025-09-01",
+      "seasonal_naive": {
+        "wape": 0.31224726917290135,
+        "mae": 679.5184750000001,
+        "bias": 0.0022346440080720517,
+        "seasonal_scaled_error": 0.2698154892919989
+      },
+      "tweedie_lightgbm": {
+        "wape": 0.30417387006947816,
+        "mae": 661.9489895682901,
+        "bias": -0.05233565716835101,
+        "seasonal_scaled_error": 0.26283919728115185
+      },
+      "prior_lightgbm": {
+        "metrics": {
+          "wape": 0.317831403885351,
+          "mae": 691.6707756880077,
+          "bias": -0.11778538200480734,
+          "seasonal_scaled_error": 0.27464078702383504
+        },
+        "rows": 800,
+        "training_zero_rate": 0.05653225806451613,
+        "validation_zero_rate": 0.0675,
+        "predicted_litres": 1535913.8504064197,
+        "actual_litres": 1740975.29,
+        "underforecast_litres_on_nonzero_weeks": 379199.03007199324
+      },
+      "intervals": {
+        "samples": 800,
+        "coverage": 0.8,
+        "mean_width_litres": 1825.4087714654702
+      },
+      "gate_results": {
+        "native_integrity": true,
+        "schema_compatible": true,
+        "finite_predictions": true,
+        "independent_window": true,
+        "fresh_release_window": true,
+        "defined_wape": true,
+        "minimum_validation_sample": true,
+        "absolute_wape": true,
+        "absolute_bias": true,
+        "latency": true,
+        "relative_wape_gain": true,
+        "category_1012100_sample": true,
+        "category_1012100_wape": true,
+        "category_1012100_bias": true,
+        "category_1012100_relative": true,
+        "category_1031100_sample": true,
+        "category_1031100_wape": true,
+        "category_1031100_bias": true,
+        "category_1031100_relative": true,
+        "category_1062400_sample": true,
+        "category_1062400_wape": true,
+        "category_1062400_bias": true,
+        "category_1062400_relative": true
+      },
+      "critical_segments": {
+        "1012100": {
+          "candidate": {
+            "wape": 0.246368321535272,
+            "mae": 511.44333537876395,
+            "bias": -0.03670036693573484,
+            "seasonal_scaled_error": 0.21936237776861406
+          },
+          "incumbent": {
+            "wape": 0.2162435365159729,
+            "mae": 448.90639705882353,
+            "bias": 0.029943244779226316,
+            "seasonal_scaled_error": 0.19253975532096432
+          },
+          "rows": 136,
+          "actual_litres": 282326.45
+        },
+        "1031100": {
+          "candidate": {
+            "wape": 0.3081272564004211,
+            "mae": 913.0549412270619,
+            "bias": -0.0894853588741929,
+            "seasonal_scaled_error": 0.2669837398662605
+          },
+          "incumbent": {
+            "wape": 0.3129934821288074,
+            "mae": 927.4747348484849,
+            "bias": -0.004832152257593773,
+            "seasonal_scaled_error": 0.2712001897810633
+          },
+          "rows": 264,
+          "actual_litres": 782295.3
+        },
+        "1062400": {
+          "candidate": {
+            "wape": 0.3421210415205315,
+            "mae": 715.1605237787027,
+            "bias": 0.012171635577928592,
+            "seasonal_scaled_error": 0.29642822970671706
+          },
+          "incumbent": {
+            "wape": 0.31130526507457623,
+            "mae": 650.7440624999999,
+            "bias": -0.003090806319985087,
+            "seasonal_scaled_error": 0.26972812959503106
+          },
+          "rows": 64,
+          "actual_litres": 133783.86
+        }
+      },
+      "policy": {
+        "min_relative_wape_gain": 0.02,
+        "profile": "statewide",
+        "max_wape": 0.4,
+        "max_abs_bias": 0.15,
+        "max_segment_wape": 0.5,
+        "max_segment_abs_bias": 0.25,
+        "group_wape_tolerance": 0.1,
+        "latency_budget_ms": 200.0,
+        "critical_categories": [
+          "1012100",
+          "1031100",
+          "1062400"
+        ]
+      }
+    },
+    {
+      "split": "development",
+      "start": "2025-09-08",
+      "end": "2025-10-27",
+      "seasonal_naive": {
+        "wape": 0.37858501535668165,
+        "mae": 772.0251625,
+        "bias": 0.07992094598299358,
+        "seasonal_scaled_error": 0.3079743665472073
+      },
+      "tweedie_lightgbm": {
+        "wape": 0.2822461761243495,
+        "mae": 575.5672864709403,
+        "bias": 0.02685317644750601,
+        "seasonal_scaled_error": 0.22960387700599436
+      },
+      "prior_lightgbm": {
+        "metrics": {
+          "wape": 0.2779454762960499,
+          "mae": 566.7971335353345,
+          "bias": -0.10981657071075199,
+          "seasonal_scaled_error": 0.22610530930890158
+        },
+        "rows": 800,
+        "training_zero_rate": 0.0571969696969697,
+        "validation_zero_rate": 0.06875,
+        "predicted_litres": 1452237.1013641013,
+        "actual_litres": 1631390.85,
+        "underforecast_litres_on_nonzero_weeks": 316295.7277320832
+      },
+      "intervals": {
+        "samples": 800,
+        "coverage": 0.81125,
+        "mean_width_litres": 1884.8396118804353
+      },
+      "gate_results": {
+        "native_integrity": true,
+        "schema_compatible": true,
+        "finite_predictions": true,
+        "independent_window": true,
+        "fresh_release_window": true,
+        "defined_wape": true,
+        "minimum_validation_sample": true,
+        "absolute_wape": true,
+        "absolute_bias": true,
+        "latency": true,
+        "relative_wape_gain": true,
+        "category_1012100_sample": true,
+        "category_1012100_wape": true,
+        "category_1012100_bias": true,
+        "category_1012100_relative": true,
+        "category_1031100_sample": true,
+        "category_1031100_wape": true,
+        "category_1031100_bias": true,
+        "category_1031100_relative": true,
+        "category_1062400_sample": true,
+        "category_1062400_wape": true,
+        "category_1062400_bias": true,
+        "category_1062400_relative": true
+      },
+      "critical_segments": {
+        "1012100": {
+          "candidate": {
+            "wape": 0.21885536789008173,
+            "mae": 499.8360906478218,
+            "bias": 0.020574010482373256,
+            "seasonal_scaled_error": 0.17811384294528415
+          },
+          "incumbent": {
+            "wape": 0.32449742338053283,
+            "mae": 741.1082720588236,
+            "bias": 0.13295417621622274,
+            "seasonal_scaled_error": 0.2640898583450688
+          },
+          "rows": 136,
+          "actual_litres": 310605.625
+        },
+        "1031100": {
+          "candidate": {
+            "wape": 0.30459208325858556,
+            "mae": 799.4317759975909,
+            "bias": -0.010408427711600684,
+            "seasonal_scaled_error": 0.2574103810110041
+          },
+          "incumbent": {
+            "wape": 0.3666284609602012,
+            "mae": 962.2523295454546,
+            "bias": -9.878136099845892e-05,
+            "seasonal_scaled_error": 0.30983724467035473
+          },
+          "rows": 264,
+          "actual_litres": 692893.875
+        },
+        "1062400": {
+          "candidate": {
+            "wape": 0.3220865451838884,
+            "mae": 589.324645469265,
+            "bias": 0.17777951754320068,
+            "seasonal_scaled_error": 0.2235831978996142
+          },
+          "incumbent": {
+            "wape": 0.5739148238011722,
+            "mae": 1050.097109375,
+            "bias": 0.3071676570834459,
+            "seasonal_scaled_error": 0.3983951318245829
+          },
+          "rows": 64,
+          "actual_litres": 117101.375
+        }
+      },
+      "policy": {
+        "min_relative_wape_gain": 0.02,
+        "profile": "statewide",
+        "max_wape": 0.4,
+        "max_abs_bias": 0.15,
+        "max_segment_wape": 0.5,
+        "max_segment_abs_bias": 0.25,
+        "group_wape_tolerance": 0.1,
+        "latency_budget_ms": 200.0,
+        "critical_categories": [
+          "1012100",
+          "1031100",
+          "1062400"
+        ]
+      }
+    },
+    {
+      "split": "holdout",
+      "start": "2025-11-03",
+      "end": "2025-12-08",
+      "seasonal_naive": {
+        "wape": 0.29893743073963214,
+        "mae": 686.3449083333334,
+        "bias": 0.0390639046199518,
+        "seasonal_scaled_error": 0.25571620875184087
+      },
+      "tweedie_lightgbm": {
+        "wape": 0.3098952366949791,
+        "mae": 711.5034651100775,
+        "bias": -0.08000558055854234,
+        "seasonal_scaled_error": 0.26508970402878473
+      },
+      "prior_lightgbm": {
+        "metrics": {
+          "wape": 0.3371163827498843,
+          "mae": 774.0018111604749,
+          "bias": -0.18665079541606613,
+          "seasonal_scaled_error": 0.28837513954556776
+        },
+        "rows": 600,
+        "training_zero_rate": 0.05785714285714286,
+        "validation_zero_rate": 0.07333333333333333,
+        "predicted_litres": 1120444.6707432154,
+        "actual_litres": 1377569.025,
+        "underforecast_litres_on_nonzero_weeks": 360762.7204765348
+      },
+      "intervals": {
+        "samples": 600,
+        "coverage": 0.7666666666666667,
+        "mean_width_litres": 1727.6948388980509
+      },
+      "gate_results": {
+        "native_integrity": true,
+        "schema_compatible": true,
+        "finite_predictions": true,
+        "independent_window": true,
+        "fresh_release_window": true,
+        "defined_wape": true,
+        "minimum_validation_sample": true,
+        "absolute_wape": true,
+        "absolute_bias": true,
+        "latency": true,
+        "relative_wape_gain": false,
+        "category_1012100_sample": true,
+        "category_1012100_wape": true,
+        "category_1012100_bias": true,
+        "category_1012100_relative": true,
+        "category_1031100_sample": true,
+        "category_1031100_wape": true,
+        "category_1031100_bias": true,
+        "category_1031100_relative": true,
+        "category_1062400_sample": true,
+        "category_1062400_wape": true,
+        "category_1062400_bias": false,
+        "category_1062400_relative": false
+      },
+      "critical_segments": {
+        "1012100": {
+          "candidate": {
+            "wape": 0.2144717881179352,
+            "mae": 461.1524552492435,
+            "bias": -0.029660119036379645,
+            "seasonal_scaled_error": 0.1932662492589496
+          },
+          "incumbent": {
+            "wape": 0.1615779133621537,
+            "mae": 347.42122549019604,
+            "bias": 0.057838516538475784,
+            "seasonal_scaled_error": 0.14560216778450757
+          },
+          "rows": 102,
+          "actual_litres": 219318.125
+        },
+        "1031100": {
+          "candidate": {
+            "wape": 0.3083108796907132,
+            "mae": 875.3395494452229,
+            "bias": -0.07101376027730111,
+            "seasonal_scaled_error": 0.2614039416642327
+          },
+          "incumbent": {
+            "wape": 0.3325478502546136,
+            "mae": 944.1518434343434,
+            "bias": 0.026287044381101427,
+            "seasonal_scaled_error": 0.28195345858611115
+          },
+          "rows": 198,
+          "actual_litres": 562150.875
+        },
+        "1062400": {
+          "candidate": {
+            "wape": 0.4855732395244307,
+            "mae": 2106.421771111559,
+            "bias": -0.30204285342485165,
+            "seasonal_scaled_error": 0.41819318347074985
+          },
+          "incumbent": {
+            "wape": 0.3008914416891384,
+            "mae": 1305.2702083333334,
+            "bias": 0.021313822340790833,
+            "seasonal_scaled_error": 0.25913855961733523
+          },
+          "rows": 48,
+          "actual_litres": 208224.5
+        }
+      },
+      "policy": {
+        "min_relative_wape_gain": 0.02,
+        "profile": "statewide",
+        "max_wape": 0.4,
+        "max_abs_bias": 0.15,
+        "max_segment_wape": 0.5,
+        "max_segment_abs_bias": 0.25,
+        "group_wape_tolerance": 0.1,
+        "latency_budget_ms": 200.0,
+        "critical_categories": [
+          "1012100",
+          "1031100",
+          "1062400"
+        ]
+      }
+    }
+  ],
+  "previous_two_store_release": {
+    "metrics": {
+      "wape": 0.9779061504201852,
+      "mae": 5.753571955131561,
+      "bias": -0.8855235368188945,
+      "seasonal_scaled_error": 0.5350138103745967
+    },
+    "rows": 800,
+    "training_zero_rate": 0.6718390804597701,
+    "validation_zero_rate": 0.675,
+    "predicted_litres": 538.8235407239858,
+    "actual_litres": 4706.85,
+    "underforecast_litres_on_nonzero_weeks": 4385.442011690632
+  }
+}

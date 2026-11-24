@@ -16,8 +16,8 @@ import numpy as np
 
 from spiritops.ingestion.sources import checksum
 
-SCHEMA_VERSION = "iowa-weekly-v1"
-FEATURE_NAMES = (
+SCHEMA_VERSION = "iowa-weekly-v2"
+LEGACY_FEATURE_NAMES = (
     "product_code",
     "category",
     "lag1",
@@ -37,7 +37,34 @@ FEATURE_NAMES = (
     "month",
     "weeks_observed",
 )
+FEATURE_NAMES = LEGACY_FEATURE_NAMES + (
+    "weeks_until_thanksgiving",
+    "weeks_until_christmas",
+    "weeks_until_new_year",
+    "weeks_until_independence_day",
+)
 WEEK = timedelta(weeks=1)
+
+
+def schema_features(version: str) -> tuple[str, ...]:
+    if version == SCHEMA_VERSION:
+        return FEATURE_NAMES
+    if version == "iowa-weekly-v1":
+        return LEGACY_FEATURE_NAMES
+    raise ValueError("incompatible feature schema")
+
+
+@lru_cache(maxsize=512)
+def holiday_offsets(day: date) -> tuple[int, ...]:
+    november = date(day.year, 11, 1)
+    thanksgiving = november + timedelta(days=(3 - november.weekday()) % 7 + 21)
+    holidays = (
+        thanksgiving,
+        date(day.year, 12, 25),
+        date(day.year + (day.month == 12), 1, 1),
+        date(day.year, 7, 4),
+    )
+    return tuple(max(-4, min(4, (event - day).days // 7)) for event in holidays)
 
 
 def monday(value: str) -> date:
@@ -97,6 +124,7 @@ class Panel:
             math.cos(angle),
             day.month,
             i,
+            *holiday_offsets(day),
         )
         return dict(zip(FEATURE_NAMES, map(float, values), strict=True))
 

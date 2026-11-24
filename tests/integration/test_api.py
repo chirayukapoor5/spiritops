@@ -31,6 +31,7 @@ def test_api_data_contracts_and_restart(serving, monkeypatch):
         first = api.post("/v1/predict", json=target, headers={"X-Request-ID": "sample-42"})
         assert first.status_code == 200 and first.headers["X-Request-ID"] == "sample-42"
         body = first.json()
+        assert 0 <= body["lower"] <= body["prediction"] <= body["upper"]
         assert body["version"] == expected and body["prediction"] >= 0
         assert api.post("/v1/predict/batch", json={"items": [target, target]}).json()["items"] == [
             body,

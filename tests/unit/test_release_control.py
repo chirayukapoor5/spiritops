@@ -66,7 +66,13 @@ def test_invalid_jobs_cannot_enter_queue(home: Path, payload: dict) -> None:
 def predictors(monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
     hooks = SimpleNamespace(started=threading.Event(), resume=threading.Event())
     features = ModuleType("spiritops.features")
-    monkeypatch.setattr(features, "SCHEMA_VERSION", "test-schema", raising=False)
+
+    def schema_features(version: str) -> tuple:
+        if version != "test-schema":
+            raise ValueError("incompatible feature schema")
+        return ()
+
+    monkeypatch.setattr(features, "schema_features", schema_features, raising=False)
     training = ModuleType("spiritops.training")
 
     def load(path: Path) -> Any:

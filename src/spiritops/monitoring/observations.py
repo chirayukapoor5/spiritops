@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import math
 import sqlite3
 import threading
@@ -20,6 +21,12 @@ CREATE TABLE IF NOT EXISTS predictions(
  UNIQUE(product,week,version,source)
 );
 CREATE INDEX IF NOT EXISTS forecast_window ON predictions(version,week,product);
+CREATE TABLE IF NOT EXISTS inputs(id TEXT PRIMARY KEY, features TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS prospective_shadow(
+ id TEXT NOT NULL, challenger TEXT NOT NULL, value REAL NOT NULL CHECK(value>=0),
+ scored_at REAL NOT NULL, PRIMARY KEY(id,challenger)
+);
+CREATE TABLE IF NOT EXISTS intervals(id TEXT PRIMARY KEY, lower REAL NOT NULL, upper REAL NOT NULL);
 CREATE TABLE IF NOT EXISTS labels(product TEXT NOT NULL, week TEXT NOT NULL,
  actual REAL NOT NULL CHECK(actual>=0), received REAL NOT NULL,
  PRIMARY KEY(product,week));
@@ -63,15 +70,22 @@ def save_batch(home: Path, rows: list[dict]) -> list[dict]:
     result = []
     with db(home) as conn:
         for row in rows:
-            conn.execute(
+            added = conn.execute(
                 """INSERT INTO predictions VALUES(:id,:product,:week,:version,:prediction,
                  :seasonal,:lag1,:segment,:snapshot,:source,:created)
                  ON CONFLICT(product,week,version,source) DO NOTHING""",
                 row,
             )
+            if added.rowcount and "features" in row:
+                conn.execute(
+                    "INSERT INTO inputs VALUES(?,?)",
+                    (row["id"], json.dumps(row["features"], allow_nan=False)),
+                )
+            if added.rowcount and row.get("lower") is not None:
+                conn.execute("INSERT INTO intervals VALUES(:id,:lower,:upper)", row)
             stored = conn.execute(
-                """SELECT id AS prediction_id,product,week,version,prediction
-                FROM predictions WHERE product=:product AND week=:week AND version=:version
+                """SELECT id AS prediction_id,product,week,version,prediction,lower,upper
+                FROM predictions LEFT JOIN intervals USING(id) WHERE product=:product AND week=:week AND version=:version
                 AND source=:source""",
                 row,
             ).fetchone()
@@ -111,8 +125,9 @@ def traffic(home: Path, status: int, latency: float) -> None:
 def recent(home: Path, table: str) -> list[dict]:
     queries = {
         "decisions": "SELECT * FROM decisions ORDER BY id DESC LIMIT 100",
-        "observations": """SELECT p.product,p.week,p.version,p.prediction,p.source,l.actual,p.created
-            FROM predictions p LEFT JOIN labels l USING(product,week)
+        "observations": """SELECT p.product,p.week,p.version,p.prediction,p.source,l.actual,p.created,
+            i.lower,i.upper
+            FROM predictions p LEFT JOIN intervals i USING(id) LEFT JOIN labels l USING(product,week)
             ORDER BY p.week DESC,p.created DESC LIMIT 2000""",
     }
     with db(home) as conn:

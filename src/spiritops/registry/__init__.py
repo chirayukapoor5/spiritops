@@ -102,7 +102,7 @@ def register(
 def evaluated(home: Path, run_id: str, report: dict[str, Any]) -> None:
     api = client(home)
     api.log_dict(run_id, report, "evaluation.json")
-    for group in ("candidate", "incumbent"):
+    for group in ("candidate", "incumbent", "intervals"):
         for metric, value in (report.get(group) or {}).items():
             if isinstance(value, (int, float)):
                 api.log_metric(run_id, f"{group}.{metric}", float(value))

@@ -50,6 +50,8 @@ class Batch(Payload):
 
 
 class Forecast(Target):
+    lower: float | None = None
+    upper: float | None = None
     prediction_id: str
     version: str
     prediction: float = Field(ge=0, allow_inf_nan=False)
@@ -183,6 +185,8 @@ def create_app(home: Path | None = None) -> FastAPI:
         ):
             raise RuntimeError("Serving model returned invalid predictions")
         source = "historical_replay" if m["historical_replay"] else "snapshot_forecast"
+        from spiritops.training import prediction_bounds
+
         return obs.save_batch(
             state,
             [
@@ -196,10 +200,14 @@ def create_app(home: Path | None = None) -> FastAPI:
                     lag1=row["lag1"],
                     segment=str(row.get("category", 0)),
                     snapshot=m["sha256"],
+                    lower=lo,
+                    upper=hi,
+                    features=row,
                     source=source,
                     created=time.time(),
                 )
                 for i, row, p in zip(items, rows, predictions, strict=True)
+                for lo, hi in [prediction_bounds(model, row, p)]
             ],
         )
 
@@ -230,6 +238,12 @@ def create_app(home: Path | None = None) -> FastAPI:
     @app.get("/v1/models/history")
     def history() -> dict:
         return {"items": deployment.history(state)}
+
+    @app.get("/v1/monitoring/shadow")
+    def shadow_report() -> dict:
+        from spiritops.monitoring.shadow import summary
+
+        return {"items": summary(state)}
 
     @app.get("/v1/monitoring/drift")
     def drift() -> dict:
