@@ -27,6 +27,7 @@ YEARS = (2023, 2024, 2025)
 DEMO_STORES = {"2622", "4161"}
 COLUMNS = sorted(REQUIRED)
 FIELDS = ", ".join(COLUMNS)
+ORDER_FIELDS = ("store_no", "bottle_volume_ml")
 
 
 def checksum(path: Path) -> str:
@@ -122,7 +123,9 @@ def project_archive(archive_path: Path, folder: Path) -> Iterator[Path]:
                     part = Path(tmp) / "member.csv"
                     with archive.open(member) as src, part.open("wb") as out:
                         shutil.copyfileobj(src, out, length=1 << 20)
-                    projected = con.read_csv(str(part), all_varchar=True).project(FIELDS)
+                    projected = con.read_csv(str(part), all_varchar=True).project(
+                        ", ".join((FIELDS, *ORDER_FIELDS))
+                    )
                     temp = Path(tmp) / "member.parquet"
                     projected.write_parquet(str(temp))
                     os.replace(temp, dest)

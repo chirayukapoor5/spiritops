@@ -4,5 +4,9 @@ The Iowa Alcohol Operations Bureau publishes wholesale purchases by Class E lice
 
 `spiritops data --mode demo` processes the compressed sample. Full mode resolves annual catalog metadata, streams the official archives and records provenance. The smaller CI extract contains 2023 transactions. All modes use DuckDB validation and weekly aggregation. Inspect the published data/current.json under SPIRITOPS_HOME for the reporting window, product list, quarantine path, checksums and quality counts. Week labels identify Mondays. The product selection ends before model validation. Inference uses only earlier weeks.
 
+The 2025 export includes order-level invoice IDs and overlapping CSV members. For order IDs, ingestion retains lines by store, date, product, packaging and transaction values. It keeps the highest observed count of each identical line across members, preserving repeated lines within a member. Legacy line IDs still isolate conflicting copies in quarantine.
+
+From 2 November 2025, some published volumes are whole litres. Ingestion reconstructs fractional litres from bottle count and package size when truncating the calculated volume reproduces the published value. The manifest counts these lines. The aggregation tracks returns separately from gross purchases. Dollar amounts are used as published.
+
 [Official 2023 catalog](https://catalog.data.gov/dataset/iowa-liquor-sales-2023) · [2024 catalog](https://catalog.data.gov/dataset/iowa-liquor-sales-2024) · [2025 catalog](https://catalog.data.gov/dataset/iowa-liquor-sales-2025)
 

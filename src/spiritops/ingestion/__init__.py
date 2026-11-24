@@ -19,6 +19,7 @@ import psutil
 
 from spiritops.ingestion.sources import (
     FIELDS,
+    ORDER_FIELDS,
     YEARS,
     atomic_json,
     checksum,
@@ -28,7 +29,7 @@ from spiritops.ingestion.sources import (
 from spiritops.validation import REQUIRED, validate
 
 RESOURCES = Path(__file__).parent / "resources"
-PIPELINE = "weekly-gross-purchases-v1"
+PIPELINE = "weekly-gross-purchases-v2"
 
 
 def ingest(home: Path, mode: str = "demo") -> dict[str, Any]:
@@ -46,7 +47,7 @@ def ingest(home: Path, mode: str = "demo") -> dict[str, Any]:
     for year in YEARS:
         path, info = fetch(raw, year)
         records.append(info)
-        parts.extend(project_archive(path, raw / info["sha256"]))
+        parts.extend(project_archive(path, raw / info["sha256"] / "order-fields-v1"))
     return ingest_files(
         home, parts, date(2023, 1, 1), date(2025, 12, 31), {"mode": "full", "upstream": records}
     )
@@ -62,10 +63,10 @@ def _build(
 ) -> dict[str, Any]:
     con.execute(
         "CREATE TABLE raw AS SELECT "
-        + ", ".join(f"NULL::VARCHAR AS {f}" for f in sorted(REQUIRED))
-        + " WHERE false"
+        + ", ".join(f"NULL::VARCHAR AS {f}" for f in (*sorted(REQUIRED), *ORDER_FIELDS))
+        + ", NULL::INTEGER AS source_part WHERE false"
     )
-    for path in files:
+    for source_part, path in enumerate(files):
         rel = (
             con.read_parquet(str(path))
             if path.suffix == ".parquet"
@@ -73,7 +74,10 @@ def _build(
         )
         if missing := REQUIRED.difference(rel.columns):
             raise ValueError(f"missing mandatory Iowa fields: {sorted(missing)}")
-        rel.project(FIELDS).insert_into("raw")
+        order_fields = [f if f in rel.columns else f"NULL::VARCHAR AS {f}" for f in ORDER_FIELDS]
+        rel.project(
+            ", ".join((FIELDS, *order_fields, f"{source_part} AS source_part"))
+        ).insert_into("raw")
     validate(con)
     report = dict(
         con.execute("SELECT outcome, count(*) FROM classified GROUP BY outcome").fetchall()
@@ -109,7 +113,7 @@ def _build(
             SELECT item_no AS product, date_trunc('week', day)::DATE AS week,
                 round(sum(greatest(liters,0)), 6) AS volume,
                 round(sum(greatest(-liters,0)), 6) AS returns,
-                arg_max(category_code, (day, invoice_id)) AS category,
+                arg_max(category_code, (day, invoice_id, category_code)) AS category,
                 sum(dollars) FILTER (WHERE dollars>=0 AND liters>0) /
                 nullif(sum(liters) FILTER (WHERE dollars>=0 AND liters>0),0) AS price,
                 count(*) FILTER (WHERE liters>0) AS purchases
@@ -125,10 +129,11 @@ def _build(
         [first, last],
     )
     con.table("panel").write_parquet(str(workspace / "weekly.parquet"))
-    returns, litres, unknown_category, missing_amount = con.execute("""
+    returns, litres, unknown_category, missing_amount, reconstructed = con.execute("""
         SELECT count(*) FILTER (WHERE liters<0),coalesce(sum(-liters) FILTER (WHERE liters<0),0),
-          count(*) FILTER (WHERE category_code IS NULL), count(*) FILTER (WHERE dollars IS NULL)
-        FROM eligible""").fetchone() or (0, 0, 0, 0)
+          count(*) FILTER (WHERE category_code IS NULL), count(*) FILTER (WHERE dollars IS NULL),
+          count(*) FILTER (WHERE liters<>reported_liters)
+        FROM eligible""").fetchone() or (0, 0, 0, 0, 0)
     return {
         "products": products,
         "outcomes": report,
@@ -136,6 +141,7 @@ def _build(
         "returned_litres": litres,
         "missing_category_lines": unknown_category,
         "missing_amount_lines": missing_amount,
+        "reconstructed_volume_lines": reconstructed,
         "source_rows": sum(report.values()),
     }
 
@@ -197,7 +203,11 @@ def ingest_files(
                 workspace = Path(tmp)
                 with duckdb.connect(
                     str(workspace / "working.duckdb"),
-                    config={"memory_limit": "512MB", "threads": "2"},
+                    config={
+                        "memory_limit": "512MB",
+                        "threads": "2",
+                        "preserve_insertion_order": "false",
+                    },
                 ) as con:
                     report = _build(con, files, first, last, selection_end, workspace)
                 digest = checksum(workspace / "weekly.parquet")
