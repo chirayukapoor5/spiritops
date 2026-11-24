@@ -15,7 +15,7 @@
   "bootstrap": {
     "outcome": "PROMOTE",
     "reasons": [],
-    "run_id": "625381a09bea4c07892b2242ece1a8eb",
+    "run_id": "8e7edbee239b4521a6c4c361828c8a9c",
     "version": "1"
   },
   "controlled_policy_change": "99% lower alert threshold for historical demonstration",
@@ -36,7 +36,7 @@
       "action": "RETRAIN",
       "reason": "Persistent degradation confirmed; reserved chronological holdout matured",
       "event": "monitor:1:2025-09-01",
-      "job_id": "f7547a7e03d645fa93e3979f2842231b"
+      "job_id": "58929321c15a4684900599772ab082bb"
     }
   ],
   "performance_before_retraining": {
@@ -292,13 +292,13 @@
   "automatic_job": {
     "outcome": "PROMOTE",
     "reasons": [],
-    "run_id": "2c46f3f41f514f439cb6f0f2b4316b0d",
+    "run_id": "b4a7a0066bcb461e90150f5b88b2eba2",
     "version": "2"
   },
   "requests_during_training_and_activation": {
-    "requests": 71,
+    "requests": 64,
     "errors": 0,
-    "p95_ms": 44.24100000051112,
+    "p95_ms": 38.436064999677896,
     "versions": [
       "1",
       "2"
@@ -308,8 +308,8 @@
     "requests": 100,
     "concurrency": 1,
     "errors": 0,
-    "p95_ms": 32.07142000055683,
-    "requests_per_second": 38.72295264684309,
+    "p95_ms": 34.91001000047618,
+    "requests_per_second": 39.12555786686946,
     "versions": [
       "2"
     ]
@@ -318,8 +318,8 @@
     "requests": 160,
     "concurrency": 8,
     "errors": 0,
-    "p95_ms": 247.18723000059978,
-    "requests_per_second": 48.91378084021379,
+    "p95_ms": 318.8270649990954,
+    "requests_per_second": 64.90658927636929,
     "versions": [
       "2"
     ]
@@ -330,10 +330,10 @@
       "relative_wape_gain",
       "category_1062400_bias"
     ],
-    "run_id": "6cdf2769c3e346429c31e6612af5c870",
+    "run_id": "95ae342c5db548888d37988574ea1628",
     "version": "3"
   },
-  "rollback_seconds": 2.655331699999806,
+  "rollback_seconds": 2.2561724000006507,
   "rollback": {
     "injected": "active model.json temporarily removed",
     "from": "2",
@@ -357,13 +357,13 @@
   "history": [
     {
       "seq": 4,
-      "created_at": "2026-11-24T14:17:30.596819+00:00",
+      "created_at": "2026-11-24T14:20:51.607252+00:00",
       "version": "1",
       "previous_version": "2",
       "outcome": "ROLLBACK",
       "reason": "active model verification or smoke failed: unexpected or missing native artifact files",
       "job_id": null,
-      "run_id": "625381a09bea4c07892b2242ece1a8eb",
+      "run_id": "8e7edbee239b4521a6c4c361828c8a9c",
       "kind": "baseline",
       "evaluation": {
         "baseline_bootstrap": true,
@@ -385,7 +385,7 @@
           "mean_width_litres": 1913.1303951195355,
           "samples": 600
         },
-        "latency_ms": 0.03332500109536335,
+        "latency_ms": 0.0211899988244113,
         "passed": true,
         "policy": {
           "critical_categories": [
@@ -859,13 +859,13 @@
     },
     {
       "seq": 3,
-      "created_at": "2026-11-24T14:17:29.403346+00:00",
+      "created_at": "2026-11-24T14:20:50.548959+00:00",
       "version": "3",
       "previous_version": "2",
       "outcome": "REJECT_CANDIDATE",
       "reason": "relative_wape_gain; category_1062400_bias",
-      "job_id": "688828523e0c4079bc4a6eb5251a2e65",
-      "run_id": "6cdf2769c3e346429c31e6612af5c870",
+      "job_id": "866cd17ead994c399f87f1ef72251155",
+      "run_id": "95ae342c5db548888d37988574ea1628",
       "kind": "lightgbm",
       "evaluation": {
         "baseline_bootstrap": false,
@@ -887,7 +887,7 @@
           "mean_width_litres": 1727.6948388980509,
           "samples": 600
         },
-        "latency_ms": 0.21578000023509952,
+        "latency_ms": 0.10310999923603958,
         "passed": false,
         "policy": {
           "critical_categories": [
@@ -1364,13 +1364,13 @@
     },
     {
       "seq": 2,
-      "created_at": "2026-11-24T14:17:13.234514+00:00",
+      "created_at": "2026-11-24T14:20:37.372843+00:00",
       "version": "2",
       "previous_version": "1",
       "outcome": "PROMOTE",
       "reason": "release gates passed",
-      "job_id": "f7547a7e03d645fa93e3979f2842231b",
-      "run_id": "2c46f3f41f514f439cb6f0f2b4316b0d",
+      "job_id": "58929321c15a4684900599772ab082bb",
+      "run_id": "b4a7a0066bcb461e90150f5b88b2eba2",
       "kind": "lightgbm",
       "evaluation": {
         "baseline_bootstrap": false,
@@ -1392,7 +1392,7 @@
           "mean_width_litres": 1884.8396118804353,
           "samples": 800
         },
-        "latency_ms": 0.09318499951405101,
+        "latency_ms": 0.11973000109719577,
         "passed": true,
         "policy": {
           "critical_categories": [
@@ -1894,13 +1894,13 @@
     },
     {
       "seq": 1,
-      "created_at": "2026-11-24T14:16:55.276781+00:00",
+      "created_at": "2026-11-24T14:20:21.522389+00:00",
       "version": "1",
       "previous_version": null,
       "outcome": "PROMOTE",
       "reason": "release gates passed",
-      "job_id": "d8ee37dee60a420d99ad45e1627bc23f",
-      "run_id": "625381a09bea4c07892b2242ece1a8eb",
+      "job_id": "df832d3e8b0e48ff94ac8da58f49f9a0",
+      "run_id": "8e7edbee239b4521a6c4c361828c8a9c",
       "kind": "baseline",
       "evaluation": {
         "baseline_bootstrap": true,
@@ -1922,7 +1922,7 @@
           "mean_width_litres": 1913.1303951195355,
           "samples": 600
         },
-        "latency_ms": 0.03332500109536335,
+        "latency_ms": 0.0211899988244113,
         "passed": true,
         "policy": {
           "critical_categories": [
@@ -2396,14 +2396,14 @@
     }
   ],
   "operations": {
-    "requests": 337,
+    "requests": 330,
     "errors": 0,
-    "p95_ms": 176.91424000004184,
-    "throughput_per_second": 5.616666666666666,
-    "rss_mb": 262.28125,
+    "p95_ms": 208.98140000017534,
+    "throughput_per_second": 5.5,
+    "rss_mb": 261.53515625,
     "worker": {
       "available": true,
-      "heartbeat_at": "2026-11-24T14:17:30.014229+00:00",
+      "heartbeat_at": "2026-11-24T14:20:51.192045+00:00",
       "queued": 0,
       "running": 0,
       "failed": 0,
@@ -2416,8 +2416,10 @@
     "week": "2025-12-29",
     "lower": 202.66574119863355,
     "upper": 1780.3592394593848,
-    "prediction_id": "e5622384e00c4dc0a88f31aaad2b33d9",
+    "prediction_id": "1f0e595582e34db695ff26fdcc82338f",
     "version": "1",
     "prediction": 1176.0
-  }
+  },
+  "revision": "cc0bacb017e3a5a3f8dca055e2fba59becceadae",
+  "shadow_pairs_scored_before_label": 200
 }
