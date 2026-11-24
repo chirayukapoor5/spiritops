@@ -18,7 +18,12 @@ import duckdb
 import psutil
 
 from spiritops.ingestion.sources import (
-    FIELDS, YEARS, atomic_json, checksum, fetch, project_archive,
+    FIELDS,
+    YEARS,
+    atomic_json,
+    checksum,
+    fetch,
+    project_archive,
 )
 from spiritops.validation import REQUIRED, validate
 
@@ -42,38 +47,63 @@ def ingest(home: Path, mode: str = "demo") -> dict[str, Any]:
         path, info = fetch(raw, year)
         records.append(info)
         parts.extend(project_archive(path, raw / info["sha256"]))
-    return ingest_files(home, parts, date(2023, 1, 1), date(2025, 12, 31),
-                        {"mode": "full", "upstream": records})
+    return ingest_files(
+        home, parts, date(2023, 1, 1), date(2025, 12, 31), {"mode": "full", "upstream": records}
+    )
 
 
-def _build(con: duckdb.DuckDBPyConnection, files: list[Path], first: date,
-           last: date, selection_end: date, workspace: Path) -> dict[str, Any]:
-    con.execute("CREATE TABLE raw AS SELECT " +
-                ", ".join(f"NULL::VARCHAR AS {f}" for f in sorted(REQUIRED)) + " WHERE false")
+def _build(
+    con: duckdb.DuckDBPyConnection,
+    files: list[Path],
+    first: date,
+    last: date,
+    selection_end: date,
+    workspace: Path,
+) -> dict[str, Any]:
+    con.execute(
+        "CREATE TABLE raw AS SELECT "
+        + ", ".join(f"NULL::VARCHAR AS {f}" for f in sorted(REQUIRED))
+        + " WHERE false"
+    )
     for path in files:
-        rel = (con.read_parquet(str(path)) if path.suffix == ".parquet"
-               else con.read_csv(str(path), all_varchar=True, header=True))
+        rel = (
+            con.read_parquet(str(path))
+            if path.suffix == ".parquet"
+            else con.read_csv(str(path), all_varchar=True, header=True)
+        )
         if missing := REQUIRED.difference(rel.columns):
             raise ValueError(f"missing mandatory Iowa fields: {sorted(missing)}")
         rel.project(FIELDS).insert_into("raw")
     validate(con)
-    report = dict(con.execute("SELECT outcome, count(*) FROM classified GROUP BY outcome").fetchall())
+    report = dict(
+        con.execute("SELECT outcome, count(*) FROM classified GROUP BY outcome").fetchall()
+    )
     con.sql("SELECT * FROM classified WHERE outcome != 'accepted'").write_parquet(
-        str(workspace / "quarantine.parquet"))
-    con.execute("""
+        str(workspace / "quarantine.parquet")
+    )
+    con.execute(
+        """
         CREATE TEMP TABLE eligible AS
         SELECT * FROM classified WHERE outcome='accepted'
             AND day BETWEEN ? AND ? + INTERVAL 6 DAY
-    """, [first, last])
-    con.execute("""
+    """,
+        [first, last],
+    )
+    con.execute(
+        """
         CREATE TEMP TABLE selected AS SELECT item_no AS product FROM eligible
         WHERE day < ? + INTERVAL 7 DAY GROUP BY item_no HAVING sum(greatest(liters,0))>0
         ORDER BY sum(greatest(liters,0)) DESC, item_no LIMIT 100
-    """, [selection_end])
-    products = [r[0] for r in con.execute("SELECT product FROM selected ORDER BY product").fetchall()]
+    """,
+        [selection_end],
+    )
+    products = [
+        r[0] for r in con.execute("SELECT product FROM selected ORDER BY product").fetchall()
+    ]
     if not products:
         raise ValueError("initial training period contains no purchasable products")
-    con.execute("""
+    con.execute(
+        """
         CREATE TEMP TABLE panel AS
         WITH sums AS (
             SELECT item_no AS product, date_trunc('week', day)::DATE AS week,
@@ -91,19 +121,32 @@ def _build(con: duckdb.DuckDBPyConnection, files: list[Path], first: date,
         FROM selected s CROSS JOIN generate_series(?::DATE, ?::DATE, INTERVAL 7 DAY) d(week)
         LEFT JOIN sums a ON a.product=s.product AND a.week=d.week
         ORDER BY d.week, s.product
-    """, [first, last])
+    """,
+        [first, last],
+    )
     con.table("panel").write_parquet(str(workspace / "weekly.parquet"))
     returns, litres, unknown_category, missing_amount = con.execute("""
         SELECT count(*) FILTER (WHERE liters<0),coalesce(sum(-liters) FILTER (WHERE liters<0),0),
           count(*) FILTER (WHERE category_code IS NULL), count(*) FILTER (WHERE dollars IS NULL)
-        FROM eligible""").fetchone() or (0,0,0,0)
-    return {"products": products, "outcomes": report, "return_lines": returns,
-            "returned_litres": litres, "missing_category_lines": unknown_category,
-            "missing_amount_lines": missing_amount, "source_rows": sum(report.values())}
+        FROM eligible""").fetchone() or (0, 0, 0, 0)
+    return {
+        "products": products,
+        "outcomes": report,
+        "return_lines": returns,
+        "returned_litres": litres,
+        "missing_category_lines": unknown_category,
+        "missing_amount_lines": missing_amount,
+        "source_rows": sum(report.values()),
+    }
 
 
-def ingest_files(home: Path, files: list[Path], first_day: date, last_day: date,
-                 provenance: dict[str, Any] | None = None) -> dict[str, Any]:
+def ingest_files(
+    home: Path,
+    files: list[Path],
+    first_day: date,
+    last_day: date,
+    provenance: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """Input coverage dates describe the source contract, including days with no orders."""
     if not files or last_day < first_day:
         raise ValueError("provide at least one file and an ordered coverage interval")
@@ -115,20 +158,27 @@ def ingest_files(home: Path, files: list[Path], first_day: date, last_day: date,
     data = home / "data"
     data.mkdir(parents=True, exist_ok=True)
     inputs = [{"name": p.name, "sha256": checksum(p)} for p in files]
-    identity = json.dumps([PIPELINE, first.isoformat(), last.isoformat(), inputs,
-                           provenance or {}], sort_keys=True)
+    identity = json.dumps(
+        [PIPELINE, first.isoformat(), last.isoformat(), inputs, provenance or {}], sort_keys=True
+    )
     key = hashlib.sha256(identity.encode()).hexdigest()
     with closing(sqlite3.connect(data / "ingestion.sqlite3", timeout=300)) as db, db:
         db.execute("PRAGMA journal_mode=WAL")
-        db.execute("CREATE TABLE IF NOT EXISTS batches (id TEXT PRIMARY KEY, manifest TEXT NOT NULL)")
+        db.execute(
+            "CREATE TABLE IF NOT EXISTS batches (id TEXT PRIMARY KEY, manifest TEXT NOT NULL)"
+        )
         db.execute("BEGIN IMMEDIATE")
         cached = db.execute("SELECT manifest FROM batches WHERE id=?", (key,)).fetchone()
         if cached:
             manifest = json.loads(cached[0])
             curated = home / manifest["path"]
             quarantine = home / manifest["quarantine"]
-            if (curated.is_file() and checksum(curated)==manifest["sha256"] and
-                quarantine.is_file() and checksum(quarantine)==manifest["quarantine_sha256"]):
+            if (
+                curated.is_file()
+                and checksum(curated) == manifest["sha256"]
+                and quarantine.is_file()
+                and checksum(quarantine) == manifest["quarantine_sha256"]
+            ):
                 atomic_json(data / "current.json", manifest)
                 return dict(manifest)
         started = time.perf_counter()
@@ -145,8 +195,10 @@ def ingest_files(home: Path, files: list[Path], first_day: date, last_day: date,
         try:
             with tempfile.TemporaryDirectory(dir=data) as tmp:
                 workspace = Path(tmp)
-                with duckdb.connect(str(workspace / "working.duckdb"),
-                    config={"memory_limit": "512MB", "threads": "2"}) as con:
+                with duckdb.connect(
+                    str(workspace / "working.duckdb"),
+                    config={"memory_limit": "512MB", "threads": "2"},
+                ) as con:
                     report = _build(con, files, first, last, selection_end, workspace)
                 digest = checksum(workspace / "weekly.parquet")
                 weekly = data / f"weekly-{digest}.parquet"
@@ -156,14 +208,22 @@ def ingest_files(home: Path, files: list[Path], first_day: date, last_day: date,
         finally:
             stop.set()
             meter.join()
-        manifest = {**report, "path": weekly.relative_to(home).as_posix(), "sha256": digest,
-                    "first_week": first.isoformat(), "last_week": last.isoformat(),
-                    "product_selection_end": selection_end.isoformat(), "inputs": inputs,
-                    "pipeline": PIPELINE, "provenance": provenance or {"mode": "local"},
-                    "quarantine": quarantine.relative_to(home).as_posix(),
-                    "quarantine_sha256": checksum(quarantine), "batch_id": key,
-                    "curation_seconds": time.perf_counter()-started,
-                    "sampled_peak_rss_bytes": peak[0]}
+        manifest = {
+            **report,
+            "path": weekly.relative_to(home).as_posix(),
+            "sha256": digest,
+            "first_week": first.isoformat(),
+            "last_week": last.isoformat(),
+            "product_selection_end": selection_end.isoformat(),
+            "inputs": inputs,
+            "pipeline": PIPELINE,
+            "provenance": provenance or {"mode": "local"},
+            "quarantine": quarantine.relative_to(home).as_posix(),
+            "quarantine_sha256": checksum(quarantine),
+            "batch_id": key,
+            "curation_seconds": time.perf_counter() - started,
+            "sampled_peak_rss_bytes": peak[0],
+        }
         db.execute("INSERT OR REPLACE INTO batches VALUES (?,?)", (key, json.dumps(manifest)))
         atomic_json(data / "current.json", manifest)
         return manifest

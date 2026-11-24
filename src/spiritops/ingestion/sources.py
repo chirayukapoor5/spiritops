@@ -50,10 +50,14 @@ def resolve(year: int) -> dict[str, str]:
     if len(urls) != 1:
         raise ValueError(f"could not resolve a unique official CSV from {catalog}")
     modified = re.search(r"(\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?\+00:00)", html)
-    return {"year": str(year), "catalog": catalog, "url": urls.pop(),
-            "metadata_sha256": hashlib.sha256(html.encode()).hexdigest(),
-            "retrieved": datetime.now(UTC).isoformat(),
-            "catalog_timestamp": modified.group(1) if modified else ""}
+    return {
+        "year": str(year),
+        "catalog": catalog,
+        "url": urls.pop(),
+        "metadata_sha256": hashlib.sha256(html.encode()).hexdigest(),
+        "retrieved": datetime.now(UTC).isoformat(),
+        "catalog_timestamp": modified.group(1) if modified else "",
+    }
 
 
 def fetch(raw: Path, year: int) -> tuple[Path, dict[str, str]]:
@@ -63,9 +67,13 @@ def fetch(raw: Path, year: int) -> tuple[Path, dict[str, str]]:
     if record.exists():
         previous = json.loads(record.read_text())
         path = raw / previous["filename"]
-        if (previous["url"] == info["url"] and previous["catalog_timestamp"] and
-                previous["catalog_timestamp"] == info["catalog_timestamp"] and
-                path.is_file() and checksum(path) == previous["sha256"]):
+        if (
+            previous["url"] == info["url"]
+            and previous["catalog_timestamp"]
+            and previous["catalog_timestamp"] == info["catalog_timestamp"]
+            and path.is_file()
+            and checksum(path) == previous["sha256"]
+        ):
             return path, previous
     with tempfile.NamedTemporaryFile(dir=raw, suffix=".zip", delete=False) as tmp:
         tmp_path = Path(tmp.name)
@@ -110,7 +118,7 @@ def project_archive(archive_path: Path, folder: Path) -> Iterator[Path]:
                 if not dest.exists():
                     part = Path(tmp) / "member.csv"
                     with archive.open(member) as src, part.open("wb") as out:
-                        shutil.copyfileobj(src, out, length=1<<20)
+                        shutil.copyfileobj(src, out, length=1 << 20)
                     projected = con.read_csv(str(part), all_varchar=True).project(FIELDS)
                     temp = Path(tmp) / "member.parquet"
                     projected.write_parquet(str(temp))
@@ -124,16 +132,20 @@ def extract_demo(archives: list[Path], target: Path, stores: set[str]) -> int:
     """Rebuild the redistributable row subset using a fixed geographic predicate."""
     target.parent.mkdir(parents=True, exist_ok=True)
     count = 0
-    with target.open("wb") as raw, gzip.GzipFile(filename="", mode="wb", fileobj=raw, mtime=0) as gz:
+    with (
+        target.open("wb") as raw,
+        gzip.GzipFile(filename="", mode="wb", fileobj=raw, mtime=0) as gz,
+    ):
         with io.TextIOWrapper(gz, encoding="utf-8", newline="") as text:
             writer = csv.writer(text, lineterminator="\n")
             writer.writerow(COLUMNS)
             for path in archives:
                 with zipfile.ZipFile(path) as archive:
                     for member in csv_members(archive):
-                        with archive.open(member) as stream, io.TextIOWrapper(
-                            stream, encoding="utf-8-sig", newline=""
-                        ) as lines:
+                        with (
+                            archive.open(member) as stream,
+                            io.TextIOWrapper(stream, encoding="utf-8-sig", newline="") as lines,
+                        ):
                             rows = csv.reader(lines)
                             header = next(rows)
                             store_idx = header.index("store_no")

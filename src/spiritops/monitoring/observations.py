@@ -1,8 +1,10 @@
 """Durable, transactionally paired predictions and weekly labels."""
+
 from __future__ import annotations
 
 import math
 import sqlite3
+import threading
 import time
 from contextlib import contextmanager, closing
 from functools import lru_cache
@@ -35,6 +37,9 @@ INSERT OR IGNORE INTO counters VALUES(1,0,0);
 """
 
 
+_schema_lock = threading.Lock()
+
+
 @lru_cache(maxsize=32)
 def _init(path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -46,7 +51,8 @@ def _init(path: Path) -> None:
 @contextmanager
 def db(home: Path) -> Iterator[sqlite3.Connection]:
     path = home / "observations.sqlite3"
-    _init(path)
+    with _schema_lock:
+        _init(path)
     with closing(sqlite3.connect(path, timeout=20)) as conn:
         conn.row_factory = sqlite3.Row
         with conn:
@@ -60,10 +66,15 @@ def save_batch(home: Path, rows: list[dict]) -> list[dict]:
             conn.execute(
                 """INSERT INTO predictions VALUES(:id,:product,:week,:version,:prediction,
                  :seasonal,:lag1,:segment,:snapshot,:source,:created)
-                 ON CONFLICT(product,week,version,source) DO NOTHING""", row)
-            stored = conn.execute("""SELECT id AS prediction_id,product,week,version,prediction
+                 ON CONFLICT(product,week,version,source) DO NOTHING""",
+                row,
+            )
+            stored = conn.execute(
+                """SELECT id AS prediction_id,product,week,version,prediction
                 FROM predictions WHERE product=:product AND week=:week AND version=:version
-                AND source=:source""", row).fetchone()
+                AND source=:source""",
+                row,
+            ).fetchone()
             result.append(dict(stored))
     return result
 
@@ -72,12 +83,14 @@ def label(home: Path, product: str, week: str, actual: float) -> bool:
     if not math.isfinite(actual) or actual < 0:
         raise ValueError("Actual litres must be finite and nonnegative")
     with db(home) as conn:
-        cursor = conn.execute("INSERT OR IGNORE INTO labels VALUES(?,?,?,?)",
-                              (product, week, actual, time.time()))
+        cursor = conn.execute(
+            "INSERT OR IGNORE INTO labels VALUES(?,?,?,?)", (product, week, actual, time.time())
+        )
         if cursor.rowcount == 1:
             return True
-        stored = conn.execute("SELECT actual FROM labels WHERE product=? AND week=?",
-                              (product, week)).fetchone()[0]
+        stored = conn.execute(
+            "SELECT actual FROM labels WHERE product=? AND week=?", (product, week)
+        ).fetchone()[0]
         if stored != actual:
             raise ValueError("A different actual is already recorded for this product and week")
         return False
@@ -86,9 +99,13 @@ def label(home: Path, product: str, week: str, actual: float) -> bool:
 def traffic(home: Path, status: int, latency: float) -> None:
     now = time.time()
     with db(home) as conn:
-        conn.execute("INSERT INTO traffic(at,status,latency_ms) VALUES(?,?,?)", (now,status,latency))
-        conn.execute("UPDATE counters SET requests=requests+1,errors=errors+?", (int(status>=400),))
-        conn.execute("DELETE FROM traffic WHERE at<?", (now-600,))
+        conn.execute(
+            "INSERT INTO traffic(at,status,latency_ms) VALUES(?,?,?)", (now, status, latency)
+        )
+        conn.execute(
+            "UPDATE counters SET requests=requests+1,errors=errors+?", (int(status >= 400),)
+        )
+        conn.execute("DELETE FROM traffic WHERE at<?", (now - 600,))
 
 
 def recent(home: Path, table: str) -> list[dict]:
@@ -104,6 +121,7 @@ def recent(home: Path, table: str) -> list[dict]:
 
 def note(home: Path, action: str, reason: str, event: str, job_id: str | None = None) -> None:
     with db(home) as conn:
-        conn.execute("INSERT INTO decisions(at,action,reason,event,job_id) VALUES(?,?,?,?,?)",
-                     (time.time(),action,reason,event,job_id))
-
+        conn.execute(
+            "INSERT INTO decisions(at,action,reason,event,job_id) VALUES(?,?,?,?,?)",
+            (time.time(), action, reason, event, job_id),
+        )

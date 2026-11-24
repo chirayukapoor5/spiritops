@@ -5,8 +5,13 @@ from __future__ import annotations
 import duckdb
 
 REQUIRED = {
-    "invoice_id", "ordered_on", "item_no", "category_code", "sales_bottles",
-    "sales_liters", "sales_dollars",
+    "invoice_id",
+    "ordered_on",
+    "item_no",
+    "category_code",
+    "sales_bottles",
+    "sales_liters",
+    "sales_dollars",
 }
 
 

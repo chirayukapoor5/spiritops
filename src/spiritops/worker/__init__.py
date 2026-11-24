@@ -29,7 +29,7 @@ def enqueue(home: Path, key: str, payload: dict[str, Any]) -> str:
         exists = db.execute("SELECT id,payload FROM jobs WHERE key=?", (key,)).fetchone()
         if exists:
             stored = json.loads(exists["payload"])
-            if any(value is not None and value != stored[name] for name,value in payload.items()):
+            if any(value is not None and value != stored[name] for name, value in payload.items()):
                 raise ValueError("idempotency key already used with different training parameters")
             return str(exists["id"])
         try:
@@ -136,7 +136,7 @@ def _settle(db: sqlite3.Connection, row: sqlite3.Row, reason: str) -> None:
     ).fetchone()
     db.execute(
         "INSERT OR IGNORE INTO tracking_recovery VALUES(?,?,?,?)",
-        (row["id"],row["attempt"],"FINISHED" if decision else "KILLED",reason),
+        (row["id"], row["attempt"], "FINISHED" if decision else "KILLED", reason),
     )
     if decision:
         result = {
@@ -267,5 +267,7 @@ def recover_tracking(home: Path) -> None:
                         api.set_tag(run.info.run_id, "recovery_reason", row["reason"][:4000])
                         api.set_terminated(run.info.run_id, status=row["run_status"])
         with database(home, write=True) as db:
-            db.execute("DELETE FROM tracking_recovery WHERE job_id=? AND attempt=?",
-                       (row["job_id"],row["attempt"]))
+            db.execute(
+                "DELETE FROM tracking_recovery WHERE job_id=? AND attempt=?",
+                (row["job_id"], row["attempt"]),
+            )

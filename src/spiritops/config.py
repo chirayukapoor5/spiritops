@@ -20,4 +20,3 @@ def snapshot(home: Path) -> dict[str, Any]:
 
 def shift(week: str, weeks: int = 1) -> str:
     return (date.fromisoformat(week) + timedelta(weeks=weeks)).isoformat()
-
