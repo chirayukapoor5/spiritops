@@ -1,0 +1,1 @@
+Use Python 3.11, uv lock, Ruff and mypy. Preserve time ordering, use only verified native artifacts, and keep operational state durable. Run focused tests before integration. Publish actual measurements with their workload and limitations. SPEC.md defines acceptance.
