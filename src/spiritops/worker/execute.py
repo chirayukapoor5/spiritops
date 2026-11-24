@@ -70,12 +70,14 @@ def execute(home: Path, id: str, token: str) -> None:
             view = Path(working)
             snapshot = _snapshot(home, view, payload["dataset_sha256"])
             _stage(home, id, token, "snapshot pinned; fitting model")
-            meta = fit(view, artifact, start, end, kind=payload["kind"])
-            sha = checksums(artifact)
-            verify(artifact, sha)
+            trained = view / "candidate"
+            meta = fit(view, trained, start, end, kind=payload["kind"])
+            sha = checksums(trained)
+            verify(trained, sha)
             if meta["dataset_sha256"] != snapshot["sha256"] or meta["training_end"] >= start:
                 raise ValueError("training data version or chronological cutoff mismatch")
-            version = registry.register(home, run, artifact, meta, sha)
+            version = registry.register(home, run, trained, meta, sha)
+            registry.retrieve(home, run, artifact, sha)
             _stage(home, id, token, f"registered challenger {version}; evaluating release gates")
             incumbent, generation = deployment.incumbent(home)
             report = evaluate(view, artifact, incumbent, start, end)

@@ -24,15 +24,18 @@ def enqueue(home: Path, key: str, payload: dict[str, Any]) -> str:
     if not key.strip() or len(key) > 512:
         raise ValueError("idempotency key must contain 1–512 characters")
     with database(home, write=True) as db:
-        exists = db.execute("SELECT id FROM jobs WHERE key=?", (key,)).fetchone()
+        if set(payload) - {"kind", "validation_start", "validation_end"}:
+            raise ValueError("unknown training job parameter")
+        exists = db.execute("SELECT id,payload FROM jobs WHERE key=?", (key,)).fetchone()
         if exists:
+            stored = json.loads(exists["payload"])
+            if any(value is not None and value != stored[name] for name,value in payload.items()):
+                raise ValueError("idempotency key already used with different training parameters")
             return str(exists["id"])
         try:
             data = json.loads((home / "data/current.json").read_text(encoding="utf-8"))
         except FileNotFoundError as exc:
             raise ValueError("ingest a validated data snapshot before enqueuing training") from exc
-        if set(payload) - {"kind", "validation_start", "validation_end"}:
-            raise ValueError("unknown training job parameter")
         kind = payload.get("kind", "lightgbm")
         if kind not in ("baseline", "lightgbm"):
             raise ValueError("unsupported model kind")
@@ -131,6 +134,10 @@ def _settle(db: sqlite3.Connection, row: sqlite3.Row, reason: str) -> None:
         "ON d.version=m.version WHERE d.job_id=? AND d.outcome IN ('PROMOTE','REJECT_CANDIDATE')",
         (row["id"],),
     ).fetchone()
+    db.execute(
+        "INSERT OR IGNORE INTO tracking_recovery VALUES(?,?,?,?)",
+        (row["id"],row["attempt"],"FINISHED" if decision else "KILLED",reason),
+    )
     if decision:
         result = {
             "outcome": decision["outcome"],
@@ -238,3 +245,27 @@ def run_once(home: Path) -> bool:
         if running:
             _settle(db, running, reason)
     return True
+
+
+def recover_tracking(home: Path) -> None:
+    """Close interrupted MLflow attempts, including crashes before the run ID was logged."""
+    with database(home) as db:
+        pending = db.execute("SELECT * FROM tracking_recovery ORDER BY rowid LIMIT 20").fetchall()
+    for row in pending:
+        from spiritops import registry
+
+        if os.environ.get("MLFLOW_TRACKING_URI") or (home / "mlflow.sqlite3").exists():
+            api = registry.client(home)
+            experiment = api.get_experiment_by_name(registry.EXPERIMENT)
+            if experiment is not None:
+                query = (
+                    f"tags.`spiritops.job_id` = '{row['job_id']}' AND "
+                    f"tags.`spiritops.attempt` = '{row['attempt']}'"
+                )
+                for run in api.search_runs([experiment.experiment_id], query):
+                    if run.info.status == "RUNNING":
+                        api.set_tag(run.info.run_id, "recovery_reason", row["reason"][:4000])
+                        api.set_terminated(run.info.run_id, status=row["run_status"])
+        with database(home, write=True) as db:
+            db.execute("DELETE FROM tracking_recovery WHERE job_id=? AND attempt=?",
+                       (row["job_id"],row["attempt"]))

@@ -2,7 +2,9 @@
 
 import json
 import os
+import shutil
 import subprocess
+import tempfile
 from importlib import metadata
 from pathlib import Path
 from typing import Any
@@ -108,6 +110,26 @@ def evaluated(home: Path, run_id: str, report: dict[str, Any]) -> None:
         api.log_metric(run_id, "latency_ms", float(report["latency_ms"]))
     api.set_tag(run_id, "validation_passed", str(bool(report["passed"])).lower())
     api.set_tag(run_id, "validation_reasons", json.dumps(report["reasons"])[:4900])
+
+
+def retrieve(home: Path, run_id: str, target: Path, expected: dict[str, str]) -> None:
+    """Materialize the logged native files, verifying against the original training digests."""
+    from spiritops.deployment.artifacts import ALLOWED, verify
+
+    if set(expected) not in ({"model.json"}, ALLOWED):
+        raise ValueError("invalid registered native file set")
+    api = client(home)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(dir=target.parent) as temporary:
+        directory = Path(temporary) / "prepared"
+        directory.mkdir()
+        for name in expected:
+            fetched = Path(api.download_artifacts(run_id, f"native/{name}", temporary))
+            if not fetched.is_file() or fetched.is_symlink():
+                raise ValueError("invalid retrieved file")
+            shutil.copyfile(fetched, directory / name)
+        verify(directory, expected)
+        directory.rename(target)
 
 
 def champion(home: Path, version: str) -> None:

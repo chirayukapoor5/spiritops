@@ -5,7 +5,7 @@ from pathlib import Path
 
 from spiritops.deployment import reconcile
 from spiritops.monitoring import tick
-from spiritops.worker import run_once
+from spiritops.worker import recover_tracking, run_once
 
 
 def main() -> None:
@@ -15,6 +15,7 @@ def main() -> None:
     while True:
         if time.monotonic() >= next_tick:
             try:
+                recover_tracking(home)
                 reconcile(home)
                 tick(home)
             except Exception:

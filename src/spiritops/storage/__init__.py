@@ -26,6 +26,13 @@ CREATE TABLE IF NOT EXISTS jobs (
     result TEXT
 );
 CREATE INDEX IF NOT EXISTS jobs_by_status ON jobs(status,created_at);
+CREATE TABLE IF NOT EXISTS tracking_recovery (
+    job_id TEXT NOT NULL REFERENCES jobs(id),
+    attempt INTEGER NOT NULL,
+    run_status TEXT NOT NULL CHECK(run_status IN ('FINISHED','KILLED')),
+    reason TEXT NOT NULL,
+    PRIMARY KEY(job_id,attempt)
+);
 CREATE UNIQUE INDEX IF NOT EXISTS one_running ON jobs(status) WHERE status='running';
 CREATE TABLE IF NOT EXISTS job_log (
     seq INTEGER PRIMARY KEY,
