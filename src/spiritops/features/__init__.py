@@ -203,8 +203,10 @@ def _read(
     return Panel(first, last, selection_end, series, digest)
 
 
-def panel(home: Path) -> Panel:
-    info: dict[str, Any] = json.loads((home / "data/current.json").read_text())
+def panel(home: Path, manifest: dict[str, Any] | None = None) -> Panel:
+    info = (
+        manifest if manifest is not None else json.loads((home / "data/current.json").read_text())
+    )
     path = (home / info["path"]).resolve()
     if not path.is_relative_to((home / "data").resolve()):
         raise ValueError("curated dataset must reside under data/")

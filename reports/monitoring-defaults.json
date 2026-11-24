@@ -1,0 +1,326 @@
+{
+  "scenario": "Historical replay with default thresholds and cached artifacts. Jobs remain queued.",
+  "dataset_sha256": "7a850513f2994f20bcf2539be0cd3fc0e040e98dc9106dd672681160730858fd",
+  "serving_version": "1",
+  "policy": {
+    "min_samples": 20,
+    "min_coverage": 0.8,
+    "consecutive_weeks": 2,
+    "excess_error": 0.15,
+    "drift_z": 1.5,
+    "validation_weeks": 8,
+    "cooldown_hours": 24,
+    "daily_budget": 2,
+    "max_lag_days": 21
+  },
+  "reference_seasonal_scaled_error": 0.27862293610864064,
+  "decisions": [
+    {
+      "week": "2025-08-25",
+      "action": "WAIT_FOR_LABELS",
+      "reason": "Too few mature, sufficiently covered weekly windows",
+      "job_id": null,
+      "latest_week_metrics": {
+        "week": "2025-08-25",
+        "samples": 100,
+        "coverage": 1.0,
+        "mae": 592.3525,
+        "wape": 0.25437847122512164,
+        "bias": -0.02888067031096053,
+        "interval_samples": 100,
+        "interval_coverage": 0.81,
+        "seasonal_scaled_error": 0.22859924881913077
+      }
+    },
+    {
+      "week": "2025-09-01",
+      "action": "HOLD",
+      "reason": "Weekly errors are within the development tolerance",
+      "job_id": null,
+      "latest_week_metrics": {
+        "week": "2025-09-01",
+        "samples": 100,
+        "coverage": 1.0,
+        "mae": 655.5694,
+        "wape": 0.3111744416837526,
+        "bias": 0.08538368303723468,
+        "interval_samples": 100,
+        "interval_coverage": 0.78,
+        "seasonal_scaled_error": 0.2596782801935842
+      }
+    },
+    {
+      "week": "2025-09-08",
+      "action": "HOLD",
+      "reason": "Weekly errors are within the development tolerance",
+      "job_id": null,
+      "latest_week_metrics": {
+        "week": "2025-09-08",
+        "samples": 100,
+        "coverage": 1.0,
+        "mae": 762.2293000000001,
+        "wape": 0.3998256927702628,
+        "bias": 0.19875299254512685,
+        "interval_samples": 100,
+        "interval_coverage": 0.79,
+        "seasonal_scaled_error": 0.30772271978639976
+      }
+    },
+    {
+      "week": "2025-09-15",
+      "action": "HOLD",
+      "reason": "Weekly errors are within the development tolerance",
+      "job_id": null,
+      "latest_week_metrics": {
+        "week": "2025-09-15",
+        "samples": 100,
+        "coverage": 1.0,
+        "mae": 550.5707,
+        "wape": 0.30203807001336364,
+        "bias": -0.013890156743388928,
+        "interval_samples": 100,
+        "interval_coverage": 0.77,
+        "seasonal_scaled_error": 0.26399716137601337
+      }
+    },
+    {
+      "week": "2025-09-22",
+      "action": "HOLD",
+      "reason": "Weekly errors are within the development tolerance",
+      "job_id": null,
+      "latest_week_metrics": {
+        "week": "2025-09-22",
+        "samples": 100,
+        "coverage": 1.0,
+        "mae": 919.2179500000001,
+        "wape": 0.420224437617353,
+        "bias": -0.11420237832238318,
+        "interval_samples": 100,
+        "interval_coverage": 0.8,
+        "seasonal_scaled_error": 0.3644539631116513
+      }
+    },
+    {
+      "week": "2025-09-29",
+      "action": "HOLD",
+      "reason": "Weekly errors are within the development tolerance",
+      "job_id": null,
+      "latest_week_metrics": {
+        "week": "2025-09-29",
+        "samples": 100,
+        "coverage": 1.0,
+        "mae": 802.74965,
+        "wape": 0.3991711507658035,
+        "bias": 0.259139214573545,
+        "interval_samples": 100,
+        "interval_coverage": 0.73,
+        "seasonal_scaled_error": 0.3003115834577197
+      }
+    },
+    {
+      "week": "2025-10-06",
+      "action": "HOLD",
+      "reason": "Weekly errors are within the development tolerance",
+      "job_id": null,
+      "latest_week_metrics": {
+        "week": "2025-10-06",
+        "samples": 100,
+        "coverage": 1.0,
+        "mae": 755.4421000000001,
+        "wape": 0.31470886157685185,
+        "bias": 0.05760888334362655,
+        "interval_samples": 100,
+        "interval_coverage": 0.74,
+        "seasonal_scaled_error": 0.265312039827882
+      }
+    },
+    {
+      "week": "2025-10-13",
+      "action": "HOLD",
+      "reason": "Weekly errors are within the development tolerance",
+      "job_id": null,
+      "latest_week_metrics": {
+        "week": "2025-10-13",
+        "samples": 100,
+        "coverage": 1.0,
+        "mae": 815.5436,
+        "wape": 0.3882576779147464,
+        "bias": -0.06716493975424674,
+        "interval_samples": 100,
+        "interval_coverage": 0.8,
+        "seasonal_scaled_error": 0.33454045869013344
+      }
+    },
+    {
+      "week": "2025-10-20",
+      "action": "HOLD",
+      "reason": "Weekly errors are within the development tolerance",
+      "job_id": null,
+      "latest_week_metrics": {
+        "week": "2025-10-20",
+        "samples": 100,
+        "coverage": 1.0,
+        "mae": 724.8123,
+        "wape": 0.3895101138980687,
+        "bias": 0.1272998803491237,
+        "interval_samples": 100,
+        "interval_coverage": 0.84,
+        "seasonal_scaled_error": 0.30952022446326405
+      }
+    },
+    {
+      "week": "2025-10-27",
+      "action": "HOLD",
+      "reason": "Weekly errors are within the development tolerance",
+      "job_id": null,
+      "latest_week_metrics": {
+        "week": "2025-10-27",
+        "samples": 100,
+        "coverage": 1.0,
+        "mae": 845.6357,
+        "wape": 0.4177285585391776,
+        "bias": 0.21973382784194465,
+        "interval_samples": 100,
+        "interval_coverage": 0.8,
+        "seasonal_scaled_error": 0.3167631365605961
+      }
+    },
+    {
+      "week": "2025-11-03",
+      "action": "HOLD",
+      "reason": "Weekly errors are within the development tolerance",
+      "job_id": null,
+      "latest_week_metrics": {
+        "week": "2025-11-03",
+        "samples": 100,
+        "coverage": 1.0,
+        "mae": 640.6066,
+        "wape": 0.21542886582545126,
+        "bias": -0.06283577602354559,
+        "interval_samples": 100,
+        "interval_coverage": 0.77,
+        "seasonal_scaled_error": 0.2001537850109293
+      }
+    },
+    {
+      "week": "2025-11-10",
+      "action": "HOLD",
+      "reason": "Weekly errors are within the development tolerance",
+      "job_id": null,
+      "latest_week_metrics": {
+        "week": "2025-11-10",
+        "samples": 100,
+        "coverage": 1.0,
+        "mae": 779.4555,
+        "wape": 0.3632059942894887,
+        "bias": 0.11990065434398435,
+        "interval_samples": 100,
+        "interval_coverage": 0.79,
+        "seasonal_scaled_error": 0.29253830481431825
+      }
+    },
+    {
+      "week": "2025-11-17",
+      "action": "HOLD",
+      "reason": "Weekly errors are within the development tolerance",
+      "job_id": null,
+      "latest_week_metrics": {
+        "week": "2025-11-17",
+        "samples": 100,
+        "coverage": 1.0,
+        "mae": 1009.2910500000003,
+        "wape": 0.4249128132683603,
+        "bias": 0.1378758738802287,
+        "interval_samples": 100,
+        "interval_coverage": 0.77,
+        "seasonal_scaled_error": 0.3315975533054858
+      }
+    },
+    {
+      "week": "2025-11-24",
+      "action": "WAIT_FOR_LABELS",
+      "reason": "Reserved independent validation period matures after 2026-01-19",
+      "job_id": null,
+      "latest_week_metrics": {
+        "week": "2025-11-24",
+        "samples": 100,
+        "coverage": 1.0,
+        "mae": 806.3048999999999,
+        "wape": 0.38791644956852195,
+        "bias": -0.02559328532878402,
+        "interval_samples": 100,
+        "interval_coverage": 0.84,
+        "seasonal_scaled_error": 0.32841544745599627
+      }
+    },
+    {
+      "week": "2025-12-01",
+      "action": "WAIT_FOR_LABELS",
+      "reason": "Reserved independent validation period matures after 2026-01-19",
+      "job_id": null,
+      "latest_week_metrics": {
+        "week": "2025-12-01",
+        "samples": 100,
+        "coverage": 1.0,
+        "mae": 445.9181,
+        "wape": 0.20721024271285238,
+        "bias": -0.028054263738796516,
+        "interval_samples": 100,
+        "interval_coverage": 0.85,
+        "seasonal_scaled_error": 0.19016990302389644
+      }
+    },
+    {
+      "week": "2025-12-08",
+      "action": "WAIT_FOR_LABELS",
+      "reason": "Reserved independent validation period matures after 2026-01-19",
+      "job_id": null,
+      "latest_week_metrics": {
+        "week": "2025-12-08",
+        "samples": 100,
+        "coverage": 1.0,
+        "mae": 436.4932999999999,
+        "wape": 0.2129066323019194,
+        "bias": 0.12376859791148313,
+        "interval_samples": 100,
+        "interval_coverage": 0.89,
+        "seasonal_scaled_error": 0.18222659730482935
+      }
+    },
+    {
+      "week": "2025-12-15",
+      "action": "WAIT_FOR_LABELS",
+      "reason": "Reserved independent validation period matures after 2026-01-19",
+      "job_id": null,
+      "latest_week_metrics": {
+        "week": "2025-12-15",
+        "samples": 100,
+        "coverage": 1.0,
+        "mae": 607.8401999999999,
+        "wape": 0.2848698557045422,
+        "bias": -0.012331030811056801,
+        "interval_samples": 100,
+        "interval_coverage": 0.88,
+        "seasonal_scaled_error": 0.2507021247167182
+      }
+    },
+    {
+      "week": "2025-12-22",
+      "action": "WAIT_FOR_LABELS",
+      "reason": "Reserved independent validation period matures after 2026-01-19",
+      "job_id": null,
+      "latest_week_metrics": {
+        "week": "2025-12-22",
+        "samples": 100,
+        "coverage": 1.0,
+        "mae": 567.7686,
+        "wape": 0.31295819450947926,
+        "bias": 0.061876050566654885,
+        "interval_samples": 100,
+        "interval_coverage": 0.87,
+        "seasonal_scaled_error": 0.26355846678382006
+      }
+    }
+  ],
+  "queued_jobs": []
+}

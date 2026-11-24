@@ -2,7 +2,7 @@
 
 Forecast weekly wholesale spirits purchases in litres and follow a fitted model from ingestion to rollback. The local platform joins issued forecasts to matured observations, queues training in a separate process, compares releases on chronological holdouts and serves the model identified by its durable deployment manifest.
 
-[Project showcase](https://chirayukapoor5.github.io/spiritops/) · [CI](https://github.com/chirayukapoor5/spiritops/actions/workflows/ci.yml) · [Benchmark evidence](reports/benchmark.json)
+[Project showcase](https://chirayukapoor5.github.io/spiritops/) · [CI](https://github.com/chirayukapoor5/spiritops/actions/workflows/ci.yml) · [Statewide lifecycle evidence](reports/statewide-lifecycle.json)
 
 ## Start locally
 
@@ -13,6 +13,8 @@ docker compose up --build -d --wait --wait-timeout 1800
 ```
 
 Open the [dashboard](http://localhost:8501), [API documentation](http://localhost:8000/docs) or [MLflow](http://localhost:5000). Startup ingests the bundled historical sample and registers the baseline. Use `docker compose down` to stop services and retain local volumes.
+
+Trusted feedback requires the local administrator token. Forecasts from closed reporting weeks remain visible as retrospective records and are excluded from operational drift and degradation calculations. [Operations guide](docs/operations.md)
 
 ## Reproduce the experiment
 
@@ -30,6 +32,8 @@ Each replay creates an isolated registry, operational databases, worker and HTTP
 ## Results and scope
 
 On the corrected statewide panel, the Tweedie LightGBM reduced WAPE from 37.86% to 28.22% on the September–October development window and qualified for promotion. On the November–December holdout, seasonal naive achieved 29.89% WAPE and LightGBM achieved 30.99%. The retrained challenger failed the release gates and went into shadow evaluation. The replay also verified continued API serving during activation and automatic rollback after an injected artifact failure. [Forecast validation](docs/forecast-validation.md) · [Lifecycle evidence](reports/statewide-lifecycle.json)
+
+The controlled replay lowered the alert threshold to exercise automatic retraining. A separate 18-week replay with defaults reserved a later holdout and queued zero jobs because its outcomes extended beyond the available data. This release ships with historical data and is designed for a single local host. [Default-policy replay](reports/monitoring-defaults.json) · [Release review](docs/release-review.md)
 
 ## Engineering guide
 

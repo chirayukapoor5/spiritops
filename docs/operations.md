@@ -25,7 +25,7 @@ Enable the optional stack with `docker compose --profile monitoring up --build -
 
 ## Admin authentication and troubleshooting
 
-On first startup the API generates a random admin token in the shared local state, readable by the service account. To use write-protected operations, run `docker compose exec api cat /var/lib/spiritops/admin-token` in a private terminal and supply the value as the `X-Admin-Token` header. For a managed credential, set `SPIRITOPS_ADMIN_TOKEN` in your local environment before starting Compose. A configured token takes precedence over the file. Local ports bind to loopback. Anyone with Docker access on the host can inspect application state.
+On first startup the API generates a random admin token in the shared local state, readable by the service account. Retraining, rollback and trusted feedback require `X-Admin-Token`. Run `docker compose exec api cat /var/lib/spiritops/admin-token` in a private terminal to retrieve it. For a managed credential, set `SPIRITOPS_ADMIN_TOKEN` in your local environment before starting Compose. A configured token takes precedence over the file. Local ports bind to loopback. Anyone with Docker access on the host can inspect application state.
 
 ```sh
 docker compose ps -a
@@ -38,7 +38,7 @@ curl --fail http://127.0.0.1:8000/v1/models/history
 - **Bootstrap exits nonzero.** Inspect its most recent error and MLflow health. Fix the download, storage or configuration error, then rerun the startup command with the same named volume. A failed initialization prevents serving.
 - **Model fails readiness.** Inspect release history for a rollback or failed artifact verification and inspect worker logs. Keep the release and data files for diagnosis. A trusted compatible predecessor is required for rollback. If all validated artifacts are lost, restore the state volume from an offline backup.
 - **Worker unavailable.** Inspect `docker compose logs worker` and `GET /v1/jobs`. Restart with `docker compose restart worker`. Observe previous job IDs, attempts and outcomes through the API.
-- **Accuracy unavailable.** Match a recorded forecast to matured weekly purchases using the feedback API. The dashboard shows missing measures as a dash. Feature drift and forecast error have separate reports.
+- **Accuracy unavailable.** Match a forecast issued before the reporting week closed to matured weekly purchases using the authenticated feedback API. Replay observations are scoped to a separate replay clock. Retrospective snapshot predictions remain available for exploration. Feature drift and forecast error have separate reports.
 - **Out-of-memory exit.** Inspect the affected service using `docker inspect` and Docker Desktop resource settings. Bootstrap and worker have 3 GiB limits in Compose; configure resources for the chosen data mode. Restart with existing state.
 
 ## Verification and release

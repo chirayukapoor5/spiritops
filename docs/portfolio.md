@@ -12,8 +12,9 @@
 
 ## Résumé bullets
 
-- Built and tested a local MLflow and FastAPI lifecycle for weekly purchase forecasts across 100 products in an Iowa wholesale transaction sample.
-- Served 91 valid HTTP predictions during controlled retraining and activation, then restored the previous model in 5.30 seconds after injecting an artifact failure.
+- Processed 8.24 million Iowa wholesale transaction rows into a reproducible weekly panel covering 100 products across 156 weeks.
+- Implemented chronological LightGBM release gates in a local MLflow and FastAPI platform. Promoted a 28.22% WAPE development candidate, rejected the later holiday challenger, and verified 200 shadow forecasts scored before their labels arrived in historical replay.
+- Served 64 valid API responses during controlled retraining and activation, then restored the previous model in 2.26 seconds after injecting an artifact failure.
 
-[Reproducible benchmark](../reports/benchmark.json)
+[Data evidence](../reports/statewide-ingestion.json) · [Statewide lifecycle](../reports/statewide-lifecycle.json) · [Final release review](release-review.md)
 

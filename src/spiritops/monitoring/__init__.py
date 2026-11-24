@@ -5,17 +5,22 @@ from __future__ import annotations
 import json
 import math
 import time
-from datetime import date, timedelta
+from datetime import date, datetime, time as wall_time, timedelta
 from functools import lru_cache
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import numpy as np
 import pyarrow.parquet as pq
 import psutil
 
 from spiritops.config import snapshot, shift
+from spiritops.features import panel
+from spiritops.ingestion.sources import checksum
 from spiritops.lifecycle import Policy, decide
 from .observations import db, note
+
+IOWA_TIME = ZoneInfo("America/Chicago")
 
 
 def policy(home: Path) -> Policy:
@@ -28,7 +33,7 @@ def as_of(home: Path) -> date:
     return (
         date.fromisoformat(json.loads(clock.read_text())["as_of"])
         if clock.exists()
-        else date.today()
+        else datetime.now(IOWA_TIME).date()
     )
 
 
@@ -37,23 +42,42 @@ def latest_closed(home: Path) -> str:
     return (today - timedelta(days=today.weekday() + 7)).isoformat()
 
 
+def _scope(home: Path) -> str:
+    return "historical_replay" if (home / "replay-clock.json").is_file() else "snapshot_forecast"
+
+
+# Old databases may contain snapshots scored after the reporting week closed.
+_PROSPECTIVE = """(p.source='historical_replay'
+    OR p.created<reporting_close(p.week))"""
+
+
+@lru_cache(maxsize=512)
+def reporting_close(week: str) -> float:
+    closed = date.fromisoformat(week) + timedelta(weeks=1)
+    return datetime.combine(closed, wall_time.min, IOWA_TIME).timestamp()
+
+
 def _rows(home: Path, version: str) -> list[dict]:
+    source = _scope(home)
     with db(home) as conn:
+        conn.create_function("reporting_close", 1, reporting_close, deterministic=True)
         end = conn.execute(
-            "SELECT max(week) FROM predictions WHERE version=? AND week<=?",
-            (version, latest_closed(home)),
+            f"""SELECT max(p.week) FROM predictions p WHERE p.version=? AND p.week<=?
+            AND p.source=? AND {_PROSPECTIVE}""",
+            (version, latest_closed(home), source),
         ).fetchone()[0]
         if not end:
             return []
         return [
             dict(r)
             for r in conn.execute(
-                """
+                f"""
             SELECT p.product,p.week,p.prediction,p.seasonal,p.lag1,p.segment,l.actual,i.lower,i.upper
             FROM predictions p LEFT JOIN intervals i USING(id) LEFT JOIN labels l USING(product,week)
-            WHERE p.version=? AND p.week BETWEEN ? AND ? ORDER BY p.week,p.product
+            WHERE p.version=? AND p.week BETWEEN ? AND ? AND p.source=? AND {_PROSPECTIVE}
+            ORDER BY p.week,p.product
             """,
-                (version, shift(end, -7), end),
+                (version, shift(end, -7), end, source),
             )
         ]
 
@@ -88,6 +112,7 @@ def performance(home: Path, model: dict) -> dict:
     metrics = measures(rows)
     return {
         "version": model["version"],
+        "source": _scope(home),
         "status": "available" if metrics["samples"] else "waiting_for_labels",
         "metrics": metrics,
         "weekly": [dict(week=w, **measures([r for r in rows if r["week"] == w])) for w in weeks],
@@ -97,6 +122,8 @@ def performance(home: Path, model: dict) -> dict:
 
 @lru_cache(maxsize=8)
 def reference_profile(path: Path, sha: str, end: str) -> dict[str, tuple[float, float]]:
+    if checksum(path) != sha:
+        raise ValueError("Drift reference checksum mismatch")
     frame = pq.read_table(path, columns=["product", "week", "volume"]).to_pandas()
     weeks = frame.week.astype(str).str.slice(0, 10)
     past = frame[(weeks <= end) & (weeks > shift(end, -12))].copy()
@@ -109,15 +136,37 @@ def reference_profile(path: Path, sha: str, end: str) -> dict[str, tuple[float, 
 
 def drift(home: Path, model: dict) -> dict:
     manifest = snapshot(home)
-    profile = reference_profile(
-        home / manifest["path"], manifest["sha256"], shift(model["validation_start"], -1)
+    digest = model["dataset_sha256"]
+    path = (
+        home / manifest["path"]
+        if digest == manifest["sha256"]
+        else home / "data" / f"weekly-{digest}.parquet"
     )
+    rules = policy(home)
+    try:
+        if not path.resolve().is_relative_to((home / "data").resolve()):
+            raise ValueError("Invalid drift reference path")
+        profile = reference_profile(path, digest, model["training_end"])
+    except (ValueError, OSError):
+        return {
+            "feature": "log1p(lag1)",
+            "samples": 0,
+            "mean_standardized_shift": None,
+            "threshold": rules.drift_z,
+            "alert": False,
+            "status": "reference_unavailable",
+        }
+    source = _scope(home)
     with db(home) as conn:
+        conn.create_function("reporting_close", 1, reporting_close, deterministic=True)
         rows = conn.execute(
-            """SELECT product,lag1 FROM predictions WHERE version=?
-            AND week >= (SELECT date(MAX(week),'-21 days') FROM predictions WHERE version=?)
+            f"""WITH cohort AS (
+              SELECT product,lag1,week FROM predictions p WHERE p.version=? AND p.source=?
+                AND {_PROSPECTIVE}
+            ) SELECT product,lag1 FROM cohort
+            WHERE week >= (SELECT date(MAX(week),'-21 days') FROM cohort)
             ORDER BY week DESC LIMIT 1000""",
-            (model["version"], model["version"]),
+            (model["version"], source),
         ).fetchall()
     scores = [
         (math.log1p(r["lag1"]) - profile[r["product"]][0]) / max(0.25, profile[r["product"]][1])
@@ -125,7 +174,6 @@ def drift(home: Path, model: dict) -> dict:
         if r["product"] in profile
     ]
     z = sum(scores) / len(scores) if scores else None
-    rules = policy(home)
     return {
         "feature": "log1p(lag1)",
         "samples": len(scores),
@@ -166,17 +214,14 @@ def mature(home: Path, manifest: dict) -> int:
         ).fetchall()
     if not keys:
         return 0
-    wanted = {(r["product"], r["week"]) for r in keys}
-    frame = pq.read_table(
-        home / manifest["path"], columns=["product", "week", "volume"]
-    ).to_pandas()
-    records = [
-        (str(r.product), str(r.week)[:10], float(r.volume), time.time())
-        for r in frame.itertuples()
-        if (str(r.product), str(r.week)[:10]) in wanted
-        and math.isfinite(r.volume)
-        and r.volume >= 0
-    ]
+    history = panel(home, manifest)
+    records = []
+    for row in keys:
+        series = history.series.get(row["product"])
+        week = date.fromisoformat(row["week"])
+        if series is not None and history.first <= week <= history.last:
+            index = (week - history.first).days // 7
+            records.append((row["product"], row["week"], float(series.volume[index]), time.time()))
     with db(home) as conn:
         conn.executemany("INSERT OR IGNORE INTO labels VALUES(?,?,?,?)", records)
     return len(records)
@@ -193,7 +238,13 @@ def tick(home: Path) -> dict:
         note(home, "HOLD", str(exc), "bootstrap")
         return {"action": "HOLD", "reason": str(exc)}
     rules = policy(home)
-    mature(home, manifest)
+    try:
+        panel(home, manifest)
+        mature(home, manifest)
+    except (ValueError, OSError) as exc:
+        reason = f"Published observations failed snapshot verification: {exc}"
+        note(home, "QUARANTINE", reason, f"snapshot:{manifest['sha256']}")
+        return {"action": "QUARANTINE", "reason": reason}
     perf = performance(home, model)
     windows = perf["weekly"]
     last = windows[-1]["week"] if windows else None

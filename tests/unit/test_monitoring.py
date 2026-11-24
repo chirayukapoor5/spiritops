@@ -1,10 +1,11 @@
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timezone
 
 import pytest
 
 from spiritops.lifecycle import Policy, decide
-from spiritops.monitoring import measures
-from spiritops.monitoring.observations import db, label, note, recent, traffic
+from spiritops.monitoring import measures, reporting_close
+from spiritops.monitoring.observations import db, label, note, recent, save_batch, traffic
 from spiritops.monitoring.shadow import summary
 
 
@@ -23,6 +24,12 @@ def test_error_metrics_and_unavailable_labels():
     assert result["coverage"] == pytest.approx(2 / 3)
     assert measures([missing])["wape"] is None
     assert measures([rows[-1]])["wape"] is None
+
+
+def test_reporting_week_closes_at_iowa_midnight():
+    utc = timezone.utc
+    assert reporting_close("2025-12-15") == datetime(2025, 12, 22, 6, tzinfo=utc).timestamp()
+    assert reporting_close("2025-08-25") == datetime(2025, 9, 1, 5, tzinfo=utc).timestamp()
 
 
 def test_shadow_summary_uses_only_labels_received_after_scoring(tmp_path):
@@ -45,6 +52,34 @@ def test_shadow_summary_uses_only_labels_received_after_scoring(tmp_path):
     assert report["matured"] == 1
     assert report["champion_wape"] == pytest.approx(0.2)
     assert report["challenger_wape"] == pytest.approx(0.1)
+
+
+def test_parallel_forecast_retries_preserve_first_issuance(tmp_path):
+    row = dict(
+        product="a",
+        week="2025-12-15",
+        version="2",
+        prediction=12,
+        seasonal=10,
+        lag1=8,
+        segment="1",
+        snapshot="snapshot",
+        source="snapshot_forecast",
+        created=1,
+        lower=1,
+        upper=24,
+        features={"lag1": 8},
+    )
+
+    def issue(i: int) -> dict:
+        return save_batch(tmp_path, [{**row, "id": str(i)}])[0]
+
+    with ThreadPoolExecutor(8) as pool:
+        forecasts = list(pool.map(issue, range(32)))
+    assert all(forecast == forecasts[0] for forecast in forecasts)
+    with db(tmp_path) as conn:
+        for table in ("predictions", "intervals", "inputs"):
+            assert conn.execute(f"SELECT count(*) FROM {table}").fetchone()[0] == 1
 
 
 @pytest.mark.parametrize(

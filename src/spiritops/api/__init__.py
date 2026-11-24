@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Annotated, Literal
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
+from starlette.concurrency import run_in_threadpool
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -101,7 +102,7 @@ def create_app(home: Path | None = None) -> FastAPI:
             )
         elapsed = (time.perf_counter() - start) * 1000
         response.headers["X-Request-ID"] = rid
-        obs.traffic(state, response.status_code, elapsed)
+        await run_in_threadpool(obs.traffic, state, response.status_code, elapsed)
         log.info(
             json.dumps(
                 dict(
@@ -143,8 +144,10 @@ def create_app(home: Path | None = None) -> FastAPI:
     def ready() -> dict:
         manifest = snapshot(state)
         current = deployment.current(state)
-        if not (state / manifest["path"]).is_file():
-            raise RuntimeError("Validated feature store is unavailable")
+        try:
+            features.panel(state, manifest)
+        except (ValueError, OSError) as exc:
+            raise RuntimeError("Validated feature store is unavailable") from exc
         return {"status": "ready", "version": str(current["version"])}
 
     @app.get("/v1/products")
@@ -171,7 +174,8 @@ def create_app(home: Path | None = None) -> FastAPI:
                 raise HTTPException(
                     422, f"The feature store supports the forecast period {m['next_week']}"
                 )
-        rows = [features.features_for(state, i.product, i.week.isoformat()) for i in items]
+        history = features.panel(state, m)
+        rows = [history.features(i.product, i.week) for i in items]
         model, predictions = deployment.predict_with_metadata(state, rows)
         version = model["version"]
         if any(i.week.isoformat() <= model["validation_end"] for i in items):
@@ -185,6 +189,8 @@ def create_app(home: Path | None = None) -> FastAPI:
         ):
             raise RuntimeError("Serving model returned invalid predictions")
         source = "historical_replay" if m["historical_replay"] else "snapshot_forecast"
+        if not m["historical_replay"] and m["next_week"] <= monitoring.latest_closed(state):
+            source = "retrospective_snapshot"
         from spiritops.training import prediction_bounds
 
         return obs.save_batch(
@@ -219,7 +225,7 @@ def create_app(home: Path | None = None) -> FastAPI:
     def batch(payload: Batch) -> dict:
         return {"items": forecast(payload.items)}
 
-    @app.post("/v1/feedback")
+    @app.post("/v1/feedback", dependencies=[Depends(admin)])
     def feedback(item: Feedback) -> dict:
         if item.product not in snapshot(state)["products"]:
             raise HTTPException(404, "Unknown product")

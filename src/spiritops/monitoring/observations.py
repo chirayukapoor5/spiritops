@@ -7,7 +7,7 @@ import math
 import sqlite3
 import threading
 import time
-from contextlib import contextmanager, closing
+from contextlib import contextmanager, closing, nullcontext
 from functools import lru_cache
 from pathlib import Path
 from typing import Iterator
@@ -45,6 +45,7 @@ INSERT OR IGNORE INTO counters VALUES(1,0,0);
 
 
 _schema_lock = threading.Lock()
+_write_lock = threading.Lock()
 
 
 @lru_cache(maxsize=32)
@@ -56,20 +57,33 @@ def _init(path: Path) -> None:
 
 
 @contextmanager
-def db(home: Path) -> Iterator[sqlite3.Connection]:
+def db(home: Path, *, write: bool = False) -> Iterator[sqlite3.Connection]:
     path = home / "observations.sqlite3"
     with _schema_lock:
         _init(path)
-    with closing(sqlite3.connect(path, timeout=20)) as conn:
+    # SQLite admits a single writer. Queue local writers before SQLite's busy retries.
+    with (
+        _write_lock if write else nullcontext(),
+        closing(sqlite3.connect(path, timeout=20)) as conn,
+    ):
         conn.row_factory = sqlite3.Row
         with conn:
             yield conn
 
 
 def save_batch(home: Path, rows: list[dict]) -> list[dict]:
-    result = []
+    lookup = """SELECT id AS prediction_id,product,week,version,prediction,lower,upper
+        FROM predictions LEFT JOIN intervals USING(id) WHERE product=:product AND week=:week
+        AND version=:version AND source=:source"""
     with db(home) as conn:
-        for row in rows:
+        stored = [conn.execute(lookup, row).fetchone() for row in rows]
+    missing = [i for i, value in enumerate(stored) if value is None]
+    if not missing:
+        return [dict(value) for value in stored]
+    # The unique constraint settles concurrent first writes across processes.
+    with db(home, write=True) as conn:
+        for index in missing:
+            row = rows[index]
             added = conn.execute(
                 """INSERT INTO predictions VALUES(:id,:product,:week,:version,:prediction,
                  :seasonal,:lag1,:segment,:snapshot,:source,:created)
@@ -83,20 +97,14 @@ def save_batch(home: Path, rows: list[dict]) -> list[dict]:
                 )
             if added.rowcount and row.get("lower") is not None:
                 conn.execute("INSERT INTO intervals VALUES(:id,:lower,:upper)", row)
-            stored = conn.execute(
-                """SELECT id AS prediction_id,product,week,version,prediction,lower,upper
-                FROM predictions LEFT JOIN intervals USING(id) WHERE product=:product AND week=:week AND version=:version
-                AND source=:source""",
-                row,
-            ).fetchone()
-            result.append(dict(stored))
-    return result
+            stored[index] = conn.execute(lookup, row).fetchone()
+    return [dict(value) for value in stored]
 
 
 def label(home: Path, product: str, week: str, actual: float) -> bool:
     if not math.isfinite(actual) or actual < 0:
         raise ValueError("Actual litres must be finite and nonnegative")
-    with db(home) as conn:
+    with db(home, write=True) as conn:
         cursor = conn.execute(
             "INSERT OR IGNORE INTO labels VALUES(?,?,?,?)", (product, week, actual, time.time())
         )
@@ -112,7 +120,7 @@ def label(home: Path, product: str, week: str, actual: float) -> bool:
 
 def traffic(home: Path, status: int, latency: float) -> None:
     now = time.time()
-    with db(home) as conn:
+    with db(home, write=True) as conn:
         conn.execute(
             "INSERT INTO traffic(at,status,latency_ms) VALUES(?,?,?)", (now, status, latency)
         )
@@ -135,7 +143,7 @@ def recent(home: Path, table: str) -> list[dict]:
 
 
 def note(home: Path, action: str, reason: str, event: str, job_id: str | None = None) -> None:
-    with db(home) as conn:
+    with db(home, write=True) as conn:
         conn.execute(
             "INSERT INTO decisions(at,action,reason,event,job_id) VALUES(?,?,?,?,?)",
             (time.time(), action, reason, event, job_id),
