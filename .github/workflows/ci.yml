@@ -1,0 +1,64 @@
+name: CI
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      UV_PYTHON: "3.11"
+      OMP_NUM_THREADS: "2"
+      OPENBLAS_NUM_THREADS: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.9.18"
+          enable-cache: true
+      - run: uv sync --locked --python 3.11.14
+      - run: uv run --locked ruff check .
+      - run: uv run --locked ruff format --check .
+      - run: uv run --locked mypy src dashboard scripts
+      - name: Unit tests
+        run: |
+          mkdir -p ci-reports
+          uv run --locked pytest tests/unit --cov=spiritops --cov-report= --junitxml=ci-reports/unit.xml
+      - name: Integration tests
+        run: uv run --locked pytest tests/integration --cov=spiritops --cov-append --cov-report= --junitxml=ci-reports/integration.xml
+      - name: End-to-end tests and coverage
+        run: uv run --locked pytest tests/end_to_end --cov=spiritops --cov-append --cov-report=term-missing --cov-report=xml:ci-reports/coverage.xml --junitxml=ci-reports/end-to-end.xml
+      - name: Start the local stack on the offline fixture
+        env:
+          SPIRITOPS_MODE: fixture
+          GIT_SHA: ${{ github.sha }}
+        run: docker compose up --build --detach --wait --wait-timeout 600
+      - name: Check service contracts and persist the serving version across restart
+        run: |
+          python scripts/smoke.py --output ci-reports/before.json
+          docker compose restart api worker
+          python scripts/smoke.py --expect ci-reports/before.json --output ci-reports/after.json
+      - name: Replay the lifecycle in an independent state directory
+        env:
+          SPIRITOPS_HOME: ${{ runner.temp }}/spiritops-demo
+        run: uv run --locked spiritops demo --mode fixture > ci-reports/lifecycle.log
+      - name: Collect service evidence
+        if: always()
+        run: |
+          mkdir -p ci-reports
+          docker compose ps -a > ci-reports/compose-services.txt
+          docker compose logs --no-color > ci-reports/compose.log
+          docker compose down
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: verification-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ci-reports
+          retention-days: 14

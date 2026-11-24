@@ -1,0 +1,142 @@
+name: spiritops
+
+x-app: &app
+  image: ${SPIRITOPS_IMAGE:-spiritops:local}
+  pull_policy: never
+  init: true
+  restart: unless-stopped
+  security_opt: ["no-new-privileges:true"]
+  volumes:
+    - state:/var/lib/spiritops
+  environment: &environment
+    SPIRITOPS_HOME: /var/lib/spiritops
+    MLFLOW_TRACKING_URI: http://mlflow:5000
+    MLFLOW_HTTP_REQUEST_TIMEOUT: "30"
+    OMP_NUM_THREADS: "2"
+    OPENBLAS_NUM_THREADS: "1"
+    MKL_NUM_THREADS: "1"
+
+x-health: &health
+  interval: 15s
+  timeout: 8s
+  retries: 8
+  start_period: 30s
+
+services:
+  mlflow:
+    <<: *app
+    build:
+      context: .
+      args:
+        GIT_SHA: ${GIT_SHA:-unknown}
+    command: ["mlflow", "server", "--backend-store-uri", "sqlite:////var/lib/spiritops/mlflow.sqlite3", "--artifacts-destination", "/var/lib/spiritops/mlartifacts", "--host", "0.0.0.0", "--port", "5000", "--workers", "1"]
+    environment:
+      <<: *environment
+      MLFLOW_SERVER_ALLOWED_HOSTS: "mlflow:5000,localhost:*,127.0.0.1:*"
+    ports: ["127.0.0.1:${SPIRITOPS_MLFLOW_PORT:-5000}:5000"]
+    mem_limit: 1200m
+    healthcheck:
+      <<: *health
+      test: ["CMD", "python", "-c", "from urllib.request import urlopen; urlopen('http://127.0.0.1:5000/health', timeout=5).close()"]
+
+  bootstrap:
+    <<: *app
+    command: ["python", "scripts/container.py", "bootstrap"]
+    environment:
+      <<: *environment
+      SPIRITOPS_MODE: ${SPIRITOPS_MODE:-demo}
+    restart: "no"
+    mem_limit: 3g
+    depends_on:
+      mlflow:
+        condition: service_healthy
+
+  api:
+    <<: *app
+    command: ["python", "scripts/container.py", "api"]
+    environment:
+      <<: *environment
+      SPIRITOPS_ADMIN_TOKEN: ${SPIRITOPS_ADMIN_TOKEN:-}
+    ports: ["127.0.0.1:${SPIRITOPS_API_PORT:-8000}:8000"]
+    mem_limit: 1500m
+    depends_on:
+      bootstrap:
+        condition: service_completed_successfully
+    healthcheck:
+      <<: *health
+      test: ["CMD", "python", "-c", "from urllib.request import urlopen; urlopen('http://127.0.0.1:8000/health/ready', timeout=5).close()"]
+
+  worker:
+    <<: *app
+    command: ["python", "-m", "spiritops.worker"]
+    mem_limit: 3g
+    depends_on:
+      bootstrap:
+        condition: service_completed_successfully
+    healthcheck:
+      <<: *health
+      test: ["CMD", "python", "scripts/container.py", "worker-health"]
+
+  dashboard:
+    image: ${SPIRITOPS_IMAGE:-spiritops:local}
+    pull_policy: never
+    init: true
+    restart: unless-stopped
+    security_opt: ["no-new-privileges:true"]
+    command: ["streamlit", "run", "dashboard/app.py", "--server.address=0.0.0.0", "--server.port=8501", "--server.headless=true"]
+    environment:
+      SPIRITOPS_API_URL: http://api:8000
+    ports: ["127.0.0.1:${SPIRITOPS_DASHBOARD_PORT:-8501}:8501"]
+    mem_limit: 1g
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      <<: *health
+      test: ["CMD", "python", "-c", "from urllib.request import urlopen; urlopen('http://127.0.0.1:8501/_stcore/health', timeout=5).close()"]
+
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    profiles: ["monitoring"]
+    restart: unless-stopped
+    mem_limit: 512m
+    command: ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.path=/prometheus", "--storage.tsdb.retention.time=7d"]
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus:/prometheus
+    ports: ["127.0.0.1:${SPIRITOPS_PROMETHEUS_PORT:-9090}:9090"]
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      <<: *health
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:9090/-/ready"]
+
+  grafana:
+    image: grafana/grafana:12.2.0
+    profiles: ["monitoring"]
+    restart: unless-stopped
+    mem_limit: 512m
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+      GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION: "true"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/spiritops.json
+    ports: ["127.0.0.1:${SPIRITOPS_GRAFANA_PORT:-3000}:3000"]
+    volumes:
+      - grafana:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    healthcheck:
+      <<: *health
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:3000/api/health"]
+
+volumes:
+  state:
+  prometheus:
+  grafana:
