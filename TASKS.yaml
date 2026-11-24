@@ -1,0 +1,11 @@
+requirements: SPEC.md
+verification: STATUS.md
+tasks:
+  - {id: source, dependencies: [], evidence: docs/data.md}
+  - {id: shared_features_and_training, dependencies: [source], evidence: tests/unit}
+  - {id: release_controller, dependencies: [shared_features_and_training], evidence: tests/unit/test_release_control.py}
+  - {id: monitoring_and_replay, dependencies: [release_controller], evidence: tests/end_to_end}
+  - {id: http_and_dashboard, dependencies: [release_controller], evidence: tests/integration}
+  - {id: benchmark, dependencies: [monitoring_and_replay, http_and_dashboard], evidence: reports}
+  - {id: docker_ci_and_showcase, dependencies: [benchmark], evidence: docs/showcase}
+

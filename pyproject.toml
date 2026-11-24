@@ -1,0 +1,31 @@
+[build-system]
+requires = ["hatchling==1.28.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "spiritops"
+version = "0.1.0"
+description = "Single-host MLOps for weekly wholesale spirits purchase forecasts"
+requires-python = ">=3.11,<3.12"
+dependencies = [
+ "sqlalchemy>=2.0,<2.1", "duckdb>=1.4,<1.5", "pyarrow>=19,<21", "pandas>=2.2,<2.3",
+ "numpy>=1.26,<2.1", "lightgbm==4.6.0", "mlflow>=3.4,<3.7",
+ "fastapi>=0.115,<0.125", "uvicorn>=0.34,<0.39", "pydantic>=2.10,<3",
+ "streamlit>=1.49,<1.53", "httpx>=0.28,<0.29", "requests>=2.32,<3",
+ "prometheus-client>=0.21,<0.24", "psutil>=6,<8"
+]
+[dependency-groups]
+dev = ["pytest>=8,<9", "pytest-cov>=6,<8", "ruff>=0.12,<0.16", "mypy>=1.15,<1.20","types-requests","types-psutil"]
+[project.scripts]
+spiritops = "spiritops.cli:main"
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
+check_untyped_defs = true
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+

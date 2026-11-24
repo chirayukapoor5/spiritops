@@ -1,0 +1,1 @@
+{"min_samples":20,"min_coverage":0.8,"consecutive_weeks":2,"excess_error":0.15,"drift_z":1.5,"cooldown_hours":24,"daily_budget":2,"validation_weeks":8,"max_lag_days":21}

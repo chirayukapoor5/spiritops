@@ -1,0 +1,1 @@
+"""SpiritOps local forecasting platform."""
