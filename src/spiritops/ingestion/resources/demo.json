@@ -1,0 +1,33 @@
+{
+  "license": "https://creativecommons.org/licenses/by/4.0/",
+  "mode": "demo",
+  "publisher": "State of Iowa, Alcohol Operations Bureau",
+  "sha256": "18c84fd6ab0eb6d23bfbdd4f9ffe9b772f22976d9b60691e7b4c39cf1f09563f",
+  "source_rows": 13358,
+  "stores": [
+    "2622",
+    "4161"
+  ],
+  "upstream": [
+    {
+      "catalog": "https://catalog.data.gov/dataset/iowa-liquor-sales-2023",
+      "catalog_timestamp": "2026-11-06T01:25:00.873430+00:00",
+      "filename": "2023-1be8164c376c0261e5f538eba1b858c8c88668d62b157fb535f8978ce543c2b9.zip",
+      "metadata_sha256": "e08673f20a139ad02a47b29f40f84e8710b2ca45852d78ab876f319f2565c088",
+      "retrieved": "2026-11-24T12:41:14.572621+00:00",
+      "sha256": "1be8164c376c0261e5f538eba1b858c8c88668d62b157fb535f8978ce543c2b9",
+      "url": "https://idh-be.iowa.gov/api/v1/datasets/1260/rows.csv",
+      "year": "2023"
+    },
+    {
+      "catalog": "https://catalog.data.gov/dataset/iowa-liquor-sales-2024",
+      "catalog_timestamp": "2026-11-06T01:25:19.179465+00:00",
+      "filename": "2024-f293c3e428f04a160b95512f2b3c4e72a47cf531cebb9c1de6255054d85d8af1.zip",
+      "metadata_sha256": "d8da84d0f1e0aeaf726e3b9cda211c1ab1f49aef29436faf196b4eb52085ea12",
+      "retrieved": "2026-11-24T12:44:08.935852+00:00",
+      "sha256": "f293c3e428f04a160b95512f2b3c4e72a47cf531cebb9c1de6255054d85d8af1",
+      "url": "https://idh-be.iowa.gov/api/v1/datasets/1261/rows.csv",
+      "year": "2024"
+    }
+  ]
+}
