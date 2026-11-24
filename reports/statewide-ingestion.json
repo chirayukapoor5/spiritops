@@ -1,0 +1,229 @@
+{
+  "batch_id": "451ae49bedb0edbb3af4ef8c0f3417fdf72733a47bae6502573acdf6e43249b0",
+  "curation_seconds": 314.53063199999997,
+  "first_week": "2023-01-02",
+  "inputs": [
+    {
+      "name": "0000.parquet",
+      "sha256": "f6950ddc011ed097f5ff66dad93345b22ab86de116ec51877033dda76f5ace11"
+    },
+    {
+      "name": "0001.parquet",
+      "sha256": "792c92c02951996d0b8a5a49e7bc4841f4a41301fdb5635822c2f5a63cb2c71d"
+    },
+    {
+      "name": "0002.parquet",
+      "sha256": "f30b83f7eb8a7cafbf73e74a24be4d8f5d13bc5a6a74acc9c14a6860812c009a"
+    },
+    {
+      "name": "0003.parquet",
+      "sha256": "35e9f22a0dcb25713cbccad77c7e0f0a896b0190abf6a1f437933b652f9274d2"
+    },
+    {
+      "name": "0004.parquet",
+      "sha256": "c01db5a1e364c771ec50869904232e0b225d2239a1fdc288750e3ab627351b5b"
+    },
+    {
+      "name": "0000.parquet",
+      "sha256": "8ddbd379b31979b7da33355c581a5605b9eabbfa28f6e61c25eaf04efc71ffc8"
+    },
+    {
+      "name": "0001.parquet",
+      "sha256": "7b4894d03c222e06d0cc3b2e01e65d8765924cb8aebb4d052187705fb5dbcf24"
+    },
+    {
+      "name": "0002.parquet",
+      "sha256": "48f69abfcb913de7dff51014eca1a8e4ea34024765f5b4b315fe9eedcfa55e04"
+    },
+    {
+      "name": "0003.parquet",
+      "sha256": "76e5d96fd197770d7b039bf2289a77bd1926d527b540e5e1736f46aa9e376aed"
+    },
+    {
+      "name": "0004.parquet",
+      "sha256": "42fce4e9495d333a2121fb1621eed3ac5c2f4a64909a5b08dc2888cb4b80873c"
+    },
+    {
+      "name": "0000.parquet",
+      "sha256": "033eaa4c2cfcd5738e71b4504c9f108cce29eae6514d995a84d7694e3546080b"
+    },
+    {
+      "name": "0001.parquet",
+      "sha256": "249875bece7c6496413b19421dcce0cd73d91bd5e744a381becb9864c6e78e48"
+    },
+    {
+      "name": "0002.parquet",
+      "sha256": "ad8f31d4030035e75dfbfeef2903a38e5144824ca1d0056d4c923d9b982535ec"
+    },
+    {
+      "name": "0003.parquet",
+      "sha256": "3507ebfc7e0a7fe8e4efe76d24f6e4cc3a2625f2b3aebd8dafe5e5e2531daf97"
+    },
+    {
+      "name": "0004.parquet",
+      "sha256": "bb2c5ad205868b3ef4888f81655b585f49da920c512b6bd17860d793f735f3fd"
+    }
+  ],
+  "last_week": "2025-12-22",
+  "missing_amount_lines": 0,
+  "missing_category_lines": 0,
+  "outcomes": {
+    "accepted": 7721152,
+    "duplicate": 516979
+  },
+  "path": "data/weekly-7a850513f2994f20bcf2539be0cd3fc0e040e98dc9106dd672681160730858fd.parquet",
+  "pipeline": "weekly-gross-purchases-v2",
+  "product_selection_end": "2023-02-20",
+  "products": [
+    "10548",
+    "10550",
+    "10802",
+    "10807",
+    "10808",
+    "11296",
+    "11297",
+    "11298",
+    "11588",
+    "11774",
+    "11776",
+    "11777",
+    "11786",
+    "11788",
+    "12408",
+    "15248",
+    "15626",
+    "15627",
+    "17958",
+    "1799",
+    "19066",
+    "19067",
+    "19476",
+    "21598",
+    "23828",
+    "24458",
+    "25608",
+    "26826",
+    "26827",
+    "26828",
+    "34006",
+    "34368",
+    "34578",
+    "34821",
+    "35317",
+    "35318",
+    "35918",
+    "35948",
+    "36304",
+    "36305",
+    "36306",
+    "36307",
+    "36308",
+    "36873",
+    "36874",
+    "36875",
+    "36886",
+    "36889",
+    "36900",
+    "36904",
+    "36908",
+    "36978",
+    "37258",
+    "37348",
+    "37994",
+    "37996",
+    "37998",
+    "38008",
+    "38088",
+    "38174",
+    "38176",
+    "38177",
+    "38178",
+    "38581",
+    "42716",
+    "42717",
+    "42718",
+    "43028",
+    "43127",
+    "43285",
+    "43334",
+    "43336",
+    "43337",
+    "43338",
+    "45278",
+    "48106",
+    "58838",
+    "64864",
+    "64865",
+    "64866",
+    "64867",
+    "64868",
+    "64870",
+    "64904",
+    "65257",
+    "69637",
+    "69947",
+    "75087",
+    "77487",
+    "82847",
+    "86251",
+    "88296",
+    "89196",
+    "89387",
+    "89577",
+    "911070",
+    "936600",
+    "936859",
+    "946574",
+    "988063"
+  ],
+  "provenance": {
+    "mode": "full",
+    "upstream": [
+      {
+        "catalog": "https://catalog.data.gov/dataset/iowa-liquor-sales-2023",
+        "catalog_timestamp": "2026-11-06T01:25:00.873430+00:00",
+        "filename": "2023-1be8164c376c0261e5f538eba1b858c8c88668d62b157fb535f8978ce543c2b9.zip",
+        "metadata_sha256": "e08673f20a139ad02a47b29f40f84e8710b2ca45852d78ab876f319f2565c088",
+        "retrieved": "2026-11-24T12:41:14.572621+00:00",
+        "sha256": "1be8164c376c0261e5f538eba1b858c8c88668d62b157fb535f8978ce543c2b9",
+        "url": "https://idh-be.iowa.gov/api/v1/datasets/1260/rows.csv",
+        "year": "2023"
+      },
+      {
+        "catalog": "https://catalog.data.gov/dataset/iowa-liquor-sales-2024",
+        "catalog_timestamp": "2026-11-06T01:25:19.179465+00:00",
+        "filename": "2024-f293c3e428f04a160b95512f2b3c4e72a47cf531cebb9c1de6255054d85d8af1.zip",
+        "metadata_sha256": "d8da84d0f1e0aeaf726e3b9cda211c1ab1f49aef29436faf196b4eb52085ea12",
+        "retrieved": "2026-11-24T12:44:08.935852+00:00",
+        "sha256": "f293c3e428f04a160b95512f2b3c4e72a47cf531cebb9c1de6255054d85d8af1",
+        "url": "https://idh-be.iowa.gov/api/v1/datasets/1261/rows.csv",
+        "year": "2024"
+      },
+      {
+        "catalog": "https://catalog.data.gov/dataset/iowa-liquor-sales-2025",
+        "catalog_timestamp": "2026-11-06T01:25:36.781799+00:00",
+        "filename": "2025-2761b347eb31b1a574002c56129890ed7e6af5777b7391b53f1f72ea34ea6e7e.zip",
+        "metadata_sha256": "d9b56d54fb235b3f8575dfa83f828fd30f5efce4281fd040cfd0ae63ba15ff31",
+        "retrieved": "2026-11-24T13:50:40.940173+00:00",
+        "sha256": "2761b347eb31b1a574002c56129890ed7e6af5777b7391b53f1f72ea34ea6e7e",
+        "url": "https://idh-be.iowa.gov/api/v1/datasets/1262/rows.csv",
+        "year": "2025"
+      }
+    ]
+  },
+  "quarantine": "data/quarantine-451ae49bedb0edbb3af4ef8c0f3417fdf72733a47bae6502573acdf6e43249b0.parquet",
+  "quarantine_sha256": "6facff48e7570cb4f830189bb31a10fc7378920f605b4cd0bc810ab8818be621",
+  "reconstructed_volume_lines": 264568,
+  "return_lines": 9003,
+  "returned_litres": 67133.6899999994,
+  "sampled_peak_rss_bytes": 669614080,
+  "sha256": "7a850513f2994f20bcf2539be0cd3fc0e040e98dc9106dd672681160730858fd",
+  "source_rows": 8238131,
+  "verified_panel": {
+    "first_week": "2023-01-02",
+    "last_week": "2025-12-22",
+    "products": 100,
+    "rows": 15600,
+    "weeks": 156
+  }
+}

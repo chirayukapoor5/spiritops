@@ -1,5 +1,9 @@
 # Verification status
 
+- Corrected statewide 2023–25 ingestion for overlapping 2025 archive members, order-level IDs and truncated litre values. The run classified 8,238,131 rows, removed 516,979 overlapping copies and reconstructed fractional litres on 264,568 accepted lines. The published panel contains 100 products over 156 complete weeks. Both Parquet hashes and quarantine counts were checked. A rerun reused the identical manifest. [Statewide ingestion evidence](reports/statewide-ingestion.json)
+- Statewide curation took 314.53 s with 639 MiB sampled peak process RSS and a 512 MB DuckDB limit. A LightGBM smoke fit used 14,000 panel rows and produced 100 finite nonnegative forecasts. The two-store sample reproduced the benchmark's Parquet checksum.
+- Local verification after the ingestion change passed 33 tests, Ruff and mypy.
+
 - The recorded real-data replay processed 13,358 Iowa invoice lines from two stores, selected 100 products, and issued forecasts over a panel spanning 2023-01-02 through 2024-12-23.
 - Real MLflow versions 1, 2 and 3 correspond to the bootstrap, promoted LightGBM and rejected baseline. Removing version 2's model metadata caused automatic restoration of version 1 in 5.30 s. A fresh API process subsequently served that version.
 - Serial warm P95 was 49.89 ms (100 requests). Eight clients achieved 38.18 requests/s and 332.96 ms P95 (160 requests). All 91 HTTP probes spanning the retraining job and activation returned valid predictions. The demo lowered the alert threshold by 99% to exercise automatic enqueue. [Raw measurements](reports/benchmark.json)
