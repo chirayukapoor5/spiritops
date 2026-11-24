@@ -2,7 +2,7 @@
 
 Forecast weekly wholesale spirits purchases in litres and follow a fitted model from ingestion to rollback. The local platform joins issued forecasts to matured observations, queues training in a separate process, compares releases on chronological holdouts and serves the model identified by its durable deployment manifest.
 
-[Project showcase](https://chirayukapoor5.github.io/spiritops/) · [CI](https://github.com/chirayukapoor5/spiritops/actions/workflows/ci.yml) · [Statewide lifecycle evidence](reports/statewide-lifecycle.json)
+[Release v0.1.0](https://github.com/chirayukapoor5/spiritops/releases/tag/v0.1.0) · [Project showcase](https://chirayukapoor5.github.io/spiritops/) · [CI](https://github.com/chirayukapoor5/spiritops/actions/runs/45416052287) · [Statewide lifecycle evidence](reports/statewide-lifecycle.json)
 
 ## Start locally
 

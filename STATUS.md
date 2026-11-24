@@ -1,5 +1,6 @@
 # Verification status
 
+- Released **v0.1.0** from revision `1c3f501`. All 38 local tests, Ruff and mypy passed. Tagged CI passed the Compose startup, restart and lifecycle checks, then published the image with provenance and SBOM. The published metadata matched the tag and lockfile, and the pinned public image pulled and ran the API import smoke locally. [Release](https://github.com/chirayukapoor5/spiritops/releases/tag/v0.1.0) · [Tagged CI](https://github.com/chirayukapoor5/spiritops/actions/runs/45416052287)
 - Final review restricted trusted feedback, isolated retrospective and replay rows from operational quality, pinned the input snapshot per batch, and verified the curated and reference snapshots used for decisions. Eight-client median repeat P95 fell from 303 to 142 ms. The distinct-product run reached 307 ms P95 with durable writes. [Release review](docs/release-review.md) · [Profile](reports/serving-profile.json)
 - Unchanged thresholds over 18 statewide weeks produced 12 HOLD and six WAIT_FOR_LABELS decisions. No retraining jobs were queued because the reserved holdout ended after the cached data. The controlled run and screenshot are labeled separately. [Default controller evidence](reports/monitoring-defaults.json)
 
@@ -18,4 +19,4 @@
 - Local integration milestone: 30 tests passed. Two additional focused tests passed for future-observation invariance of a fitted model and idempotent source ingestion. Ruff and mypy passed at the integration milestone. Coverage measured 100% for lifecycle policy, 88% for deployment and 92% for artifact checks.
 - Docker Compose started all four persistent services and the bootstrap job. The API served a model-backed smoke forecast. [Smoke result](reports/compose-smoke.json)
 - A clean Linux GitHub Actions checkout passed locked installation, lint, typing, unit/integration/replay tests, image build, Compose startup, restart and HTTP smoke. [CI run](https://github.com/chirayukapoor5/spiritops/actions/runs/45406875878)
-- The current evidence covers historical replay. Wider calibration of alert thresholds and long-running field reliability remain unverified. The video shows the original two-store lifecycle. Codex assisted implementation, testing and documentation.
+- The current evidence covers historical replay. Wider calibration of alert thresholds and long-running field reliability remain unverified. The updated showcase displays the statewide replay. Codex assisted implementation, testing and documentation.
