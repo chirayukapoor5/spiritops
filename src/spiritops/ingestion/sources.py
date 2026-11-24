@@ -18,6 +18,7 @@ from pathlib import Path
 from urllib.request import Request, urlopen
 from uuid import uuid4
 
+import requests
 import duckdb
 
 from spiritops.validation import REQUIRED
@@ -78,8 +79,10 @@ def fetch(raw: Path, year: int) -> tuple[Path, dict[str, str]]:
     with tempfile.NamedTemporaryFile(dir=raw, suffix=".zip", delete=False) as tmp:
         tmp_path = Path(tmp.name)
         try:
-            with urlopen(info["url"], timeout=120) as response:
-                shutil.copyfileobj(response, tmp, length=1 << 20)
+            with requests.get(info["url"], stream=True, timeout=(20, 120)) as response:
+                response.raise_for_status()
+                for block in response.iter_content(chunk_size=1 << 20):
+                    tmp.write(block)
         except BaseException:
             tmp.close()
             tmp_path.unlink(missing_ok=True)

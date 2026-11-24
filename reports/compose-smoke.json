@@ -1,0 +1,8 @@
+{
+  "version": "1",
+  "input": {
+    "product": "10008",
+    "week": "2024-12-30"
+  },
+  "prediction": 0.0
+}

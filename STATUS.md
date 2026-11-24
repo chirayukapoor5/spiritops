@@ -1,4 +1,9 @@
 # Verification status
 
-See the workflow runs, machine-readable benchmark report and release review linked from the README. Local development began from an empty Git repository. The work includes AI-assisted implementation, testing, debugging and documentation using OpenAI Codex. Data attribution is in docs/data.md.
-
+- The recorded real-data replay processed 13,358 Iowa invoice lines from two stores, selected 100 products, and issued forecasts over a panel spanning 2023-01-02 through 2024-12-23.
+- Real MLflow versions 1, 2 and 3 correspond to the bootstrap, promoted LightGBM and rejected baseline. Removing version 2's model metadata caused automatic restoration of version 1 in 5.30 s. A fresh API process subsequently served that version.
+- Serial warm P95 was 49.89 ms (100 requests). Eight clients achieved 38.18 requests/s and 332.96 ms P95 (160 requests). All 91 HTTP probes spanning the retraining job and activation returned valid predictions. The demo lowered the alert threshold by 99% to exercise automatic enqueue. [Raw measurements](reports/benchmark.json)
+- Local integration milestone: 30 tests passed. Two additional focused tests passed for future-observation invariance of a fitted model and idempotent source ingestion. Ruff and mypy passed at the integration milestone. Coverage measured 100% for lifecycle policy, 88% for deployment and 92% for artifact checks.
+- Docker Compose started all four persistent services and the bootstrap job. The API served a model-backed smoke forecast. [Smoke result](reports/compose-smoke.json)
+- A clean Linux GitHub Actions checkout passed locked installation, lint, typing, unit/integration/replay tests, image build, Compose startup, restart and HTTP smoke. [CI run](https://github.com/chirayukapoor5/spiritops/actions/runs/45406875878)
+- Open scope includes quantile forecasts, prospective shadow comparisons and a wider evaluation of alert policy sensitivity. Long-running field reliability has not been measured. The video shows the running dashboard inspecting persisted replay events. Codex assisted implementation, testing and documentation.
